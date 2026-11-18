@@ -92,6 +92,23 @@ button.opt.on:active{background:var(--blue-d)}
 button.opt .tag{position:absolute;right:12px;top:12px;font-size:12px;background:#fff;color:var(--blue);border-radius:99px;padding:2px 10px;font-weight:800}
 button.danger{background:var(--bad)}
 button.danger:active{background:#991b1b}
+.srow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+.srow .who{min-width:0;word-break:break-all;font-size:14px}
+.srow button{width:auto;padding:7px 10px;font-size:13px}
+.pill{display:inline-block;margin-top:3px;font-size:12px;font-weight:800;border-radius:99px;padding:2px 9px;background:#e8eef6;color:var(--blue)}
+.pill.adm{background:var(--blue);color:#fff}
+code{background:#eef2f7;border-radius:5px;padding:1px 5px;font-size:12.5px}
+.fx{position:fixed;inset:0;pointer-events:none;z-index:30;overflow:hidden}
+.phone .fx{position:absolute}
+.fx i{position:absolute;top:-24px;display:block;opacity:0;animation-name:fall;animation-timing-function:cubic-bezier(.3,.6,.5,1);animation-fill-mode:forwards}
+@keyframes fall{0%{opacity:1;transform:translate3d(0,0,0) rotate(0)}85%{opacity:1}100%{opacity:0;transform:translate3d(var(--dx),var(--h),0) rotate(var(--rot))}}
+.fx .pop{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%) scale(.5);opacity:0;background:#fff;border-radius:22px;padding:20px 28px;text-align:center;box-shadow:0 18px 50px rgba(15,23,42,.35);animation:popin .55s cubic-bezier(.2,1.3,.4,1) forwards,popout .5s 3.6s forwards;min-width:240px}
+.fx .pop .big{font-size:54px;line-height:1.1}
+.fx .pop b{display:block;font-size:22px;color:var(--blue);margin:4px 0 2px}
+.fx .pop span{font-size:13px;color:var(--mute)}
+@keyframes popin{to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes popout{to{opacity:0;transform:translate(-50%,-60%) scale(.9)}}
+@media (prefers-reduced-motion: reduce){.fx .pop{animation:popin .01s forwards,popout .5s 3.6s forwards}}
 
 </style>
 </head>
@@ -160,7 +177,7 @@ function computeStats(cards, stamps) {
 /* ============================================================
    저장소 1) 데모/샘플용 (localStorage 또는 메모리)
    ============================================================ */
-const blankDb = () => ({ c: {}, s: {}, k: {}, win: OPEN_WIN() });
+const blankDb = () => ({ c: {}, s: {}, k: {}, win: OPEN_WIN(), staff: { "demo@local": { role: "admin" } } });
 function makeLocalBackend(key = "stamp_demo_v2") {
   return { load() { try { return JSON.parse(localStorage.getItem(key)) || blankDb(); } catch { return blankDb(); } }, save(d) { localStorage.setItem(key, JSON.stringify(d)); }, reset() { localStorage.removeItem(key); } };
 }
@@ -194,6 +211,11 @@ function makeDemoApi(backend) {
       },
     },
     s: {
+      async me() { return "demo@local"; },
+      subscribeStaff(cb) { return watch(() => { const st = load().staff || {}; return Object.keys(st).sort().map(id => ({ id, role: st[id].role })); }, cb); },
+      async addStaff(email, role) { const d = load(); d.staff ||= {}; d.staff[email] = { role }; save(d); },
+      async setStaffRole(id, role) { const d = load(); d.staff ||= {}; d.staff[id] = { role }; save(d); },
+      async removeStaff(id) { const d = load(); if (d.staff) delete d.staff[id]; save(d); },
       async isStaff() { return true; }, async role() { return "admin"; }, async login() {}, async loginGoogle() {}, async logout() {},
       async getWindow() { const w = load().win; return { ...w, rehearsal: isOpenWin(w), missing: false }; },
       async setWindow(w) { const d = load(); d.win = { start: w.start, end: w.end }; save(d); },
@@ -297,6 +319,11 @@ async function makeFirebaseApi(cfg) {
         await calibrate(); return true;
       },
       async role() { return staffRole; },
+      async me() { return user?.email ? user.email.toLowerCase() : ""; },
+      subscribeStaff(cb) { return F.onSnapshot(F.collection(db, "staff"), s => cb(s.docs.map(d => ({ id: d.id, role: String(d.data().role || "") })).sort((a, b) => a.id.localeCompare(b.id)))); },
+      async addStaff(email, role) { await F.setDoc(F.doc(db, "staff", email), { role }); },
+      async setStaffRole(id, role) { await F.setDoc(F.doc(db, "staff", id), { role }); },
+      async removeStaff(id) { await F.deleteDoc(F.doc(db, "staff", id)); },
       async login(email, pw) {
         user = (await A.signInWithEmailAndPassword(auth, email, pw)).user;
         if (!(await this.isStaff())) { await A.signOut(auth); user = null; throw new Error("not-staff"); }
@@ -382,9 +409,9 @@ function makeMemoryPersist() { let v = null; return { async get() { return v; },
    화면 (한 화면 = createApp 한 번. 샘플 페이지에서는 두 번 띄운다)
    ============================================================ */
 function createApp(root, { api, persist, notice = "", overlayHost = root.parentNode || root, adminLink = true }) {
-  const unsubs = []; let codeTimer = null, staffTab = "code", staffBooth = "b1", adminTab = "dash", myRole = "", showTest = false, listQ = "", listF = "all";
+  const unsubs = []; let codeTimer = null, staffTab = "code", staffBooth = "b1", adminTab = "dash", myRole = "", showTest = false, listQ = "", listF = "all", lastN = null;
   const q = (s, r = root) => r.querySelector(s);
-  function cleanup() { while (unsubs.length) { try { unsubs.pop()(); } catch {} } clearInterval(codeTimer); overlayHost.querySelectorAll(".overlay").forEach(o => o.remove()); }
+  function cleanup() { while (unsubs.length) { try { unsubs.pop()(); } catch {} } clearInterval(codeTimer); overlayHost.querySelectorAll(".overlay,.fx").forEach(o => o.remove()); }
   const shell = (inner, sub = "미션 스탬프") =>
     `<header><small>${esc(CONFIG.eventTitle)}</small><h1>${esc(sub)}</h1></header>` +
     (notice ? `<div class="demo">${notice}</div>` : api.demo ? `<div class="demo">데모 모드 — 이 브라우저에서만 동작합니다. 실서비스는 설정에 Firebase 키를 넣으세요.</div>` : "") +
@@ -395,7 +422,7 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
   /* ---------------- 참가자 ---------------- */
   async function participantView() {
     render(shell(`<div class="center muted">불러오는 중…</div>`));
-    let code = null, card = null;
+    let code = null, card = null; lastN = null;
     try { code = await persist.get(); if (code) card = await api.p.load(code); } catch (e) { return fail(e); }
     if (!card) return renderJoin(code ? "저장된 카드를 찾지 못했어요. 새로 만들거나 복구 코드를 입력해 주세요." : "");
     await persist.set(code);
@@ -431,6 +458,24 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     };
   }
 
+  function celebrate() {
+    overlayHost.querySelectorAll(".fx").forEach(o => o.remove());
+    const fx = document.createElement("div"); fx.className = "fx";
+    const still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    fx.innerHTML = `<div class="pop"><div class="big">🎉</div><b>5개 미션 완주!</b><span>수령 데스크에서 ${esc(CONFIG.prize)}을 받아 가세요</span></div>`;
+    overlayHost.appendChild(fx);
+    if (!still) {
+      const H = (fx.clientHeight || 700) + 60, colors = ["#0b5fa5", "#6fae1f", "#f5b301", "#e5484d", "#8e4ec6", "#12a594"];
+      for (let i = 0; i < 90; i++) {
+        const c = document.createElement("i"), w = 6 + Math.random() * 7;
+        c.style.cssText = `left:${Math.random() * 100}%;width:${w}px;height:${w * (0.6 + Math.random() * 1.2)}px;background:${colors[i % colors.length]};--h:${H}px;--dx:${(Math.random() - 0.5) * 160}px;--rot:${(Math.random() * 900 - 450) | 0}deg;animation-duration:${(2 + Math.random() * 1.8).toFixed(2)}s;animation-delay:${(Math.random() * 0.9).toFixed(2)}s;border-radius:${Math.random() < 0.3 ? "50%" : "2px"}`;
+        fx.appendChild(c);
+      }
+    }
+    try { navigator.vibrate && navigator.vibrate([180, 80, 180]); } catch {}
+    setTimeout(() => fx.remove(), 5200);
+  }
+
   function renderCard(code, { card, stamps }, win) {
     const n = BOOTH_IDS.filter(b => stamps[b]).length, all = n === BOOTH_IDS.length, st = winState(win);
     const banner = st === "before" ? `<div class="banner">스탬프는 포럼 기간(${esc(CONFIG.forum.label)})에 찍을 수 있어요. 카드는 미리 만들어 두셔도 돼요.</div>`
@@ -440,7 +485,7 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
       : `<div class="slot"><div class="stamp">${b.emoji}</div><div class="t"><b>${i + 1}. ${esc(b.name)}</b><span>${esc(b.sub)}</span>${b.link ? `<a href="${esc(CONFIG.shopUrl)}" target="_blank" rel="noopener">온라인 스토어 열기 ›</a>` : ""}</div><button data-b="${b.id}">코드 입력</button></div>`).join("");
     const win_ = all ? `<div class="card win ${card.claimed ? "claimed" : ""}">
         <div>${card.claimed ? "수령 완료" : `5종 완료! 🎉 ${esc(CONFIG.prize)} 받으러 가요`}</div><div class="no">${fmtCode(code)}</div>
-        <div>${card.claimed ? "기념품을 받아 가셨어요. 참여해 주셔서 감사합니다." : "수령 데스크에서 이 화면을 보여 주세요."}</div></div>` : "";
+        <div>${card.claimed ? "기념품을 받아 가셨어요. 참여해 주셔서 감사합니다." : "수령 데스크에서 이 화면을 보여 주세요."}</div>${card.claimed ? "" : `<button class="ghost" id="again" style="color:#fff;margin-top:6px">🎉 축하 효과 다시 보기</button>`}</div>` : "";
     render(shell(`
       <div class="noti"><div>${card.org ? `<span class="mini">${esc(card.org)}</span><br>` : ""}<b>${esc(card.name)}</b>님의 스탬프</div></div>
       ${banner}${win_}
@@ -451,6 +496,9 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
         <p class="muted" style="font-size:13px">받은 스탬프는 지워지지 않아요. 브라우저 기록을 지우거나 폰을 바꿔도 아래 복구 코드로 그대로 불러올 수 있으니 화면을 캡처해 두세요.</p>
         <div class="rec">${fmtCode(code)}</div><button class="sec" id="cp">복구 링크 복사</button><div class="mini" id="cpm" style="margin-top:6px;text-align:center"></div></div>`));
     root.querySelectorAll("button[data-b]").forEach(btn => btn.onclick = () => openCodeSheet(code, boothOf(btn.dataset.b), win));
+    if (q("#again")) q("#again").onclick = celebrate;
+    if (lastN !== null && lastN < BOOTH_IDS.length && n === BOOTH_IDS.length) celebrate();
+    lastN = n;
     q("#cp").onclick = async () => {
       const url = location.origin + location.pathname + "#c=" + code; let ok = false;
       try { await navigator.clipboard.writeText(url); ok = true; } catch {}
@@ -606,13 +654,13 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
 
   function renderAdmin() {
     cleanup();
-    const tabs = [["dash", "현황"], ["list", "참가자"], ["code", "코드"], ["win", "기간"], ["reset", "초기화"]];
+    const tabs = [["dash", "현황"], ["list", "참가자"], ["code", "코드"], ["staff", "직원"], ["win", "기간"], ["reset", "초기화"]];
     render(shell(`<div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${adminTab === k ? "on" : ""}">${l}</button>`).join("")}</div>
       <div id="pane"></div><div style="text-align:center;margin-top:16px">${adminLink ? `<button class="ghost" id="gs">직원 화면</button>` : ""}<button class="ghost" id="lo">로그아웃</button></div>`, "관리자 모드"));
     root.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { adminTab = b.dataset.t; renderAdmin(); });
     if (q("#gs")) q("#gs").onclick = () => { location.hash = "#staff"; };
     q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin("", "admin"); };
-    ({ dash: paneDash, list: paneList, code: paneCode, win: paneWin, reset: paneReset })[adminTab](q("#pane"));
+    ({ dash: paneDash, list: paneList, code: paneCode, staff: paneStaff, win: paneWin, reset: paneReset })[adminTab](q("#pane"));
   }
 
   function detail(all, withTest) {
@@ -674,6 +722,48 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     q("#tt", p).onchange = e => { showTest = e.target.checked; draw(); };
     p.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { listF = b.dataset.f; p.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b)); draw(); });
     unsubs.push(api.s.subscribeAll(a => { all = a; draw(); }));
+  }
+
+  async function paneStaff(p) {
+    p.innerHTML = LOADING;
+    let me = ""; try { me = await api.s.me(); } catch {}
+    let role = "staff", list = [], busy = false;
+    p.innerHTML = `<div class="card"><h2>직원 등록</h2>
+        <p class="muted">직원이 Google 로그인에 쓰는 <b>구글 계정 이메일</b>을 입력하고 역할을 고른 뒤 추가하세요. 추가한 직원은 바로 직원 화면(<code>#staff</code>)에 로그인할 수 있어요.</p>
+        <form id="sf" novalidate><label for="se">구글 계정 이메일</label><input id="se" type="email" placeholder="name@gmail.com" autocomplete="off" autocapitalize="none">
+          <div class="fl" id="rl"><button type="button" data-r="staff" class="on">직원</button><button type="button" data-r="admin">관리자</button></div>
+          <p class="mini" id="rh">직원: 코드 발급 · 수령 데스크 · 현황</p>
+          <div class="err" id="sr"></div><button type="submit" id="sa">추가</button></form></div>
+      <div class="card"><h2>등록된 계정 <span class="mini" id="sc"></span></h2><div id="sl" class="muted">불러오는 중…</div></div>`;
+    const hint = { staff: "직원: 코드 발급 · 수령 데스크 · 현황", admin: "관리자: 직원 기능 + 현황 상세 · 직원 등록 · 기간 설정 · 초기화" };
+    p.querySelectorAll("[data-r]").forEach(b => b.onclick = () => { role = b.dataset.r; p.querySelectorAll("[data-r]").forEach(x => x.classList.toggle("on", x === b)); q("#rh", p).textContent = hint[role]; });
+    const draw = () => {
+      q("#sc", p).textContent = list.length + "명";
+      q("#sl", p).innerHTML = list.length ? list.map(u => {
+        const isMe = u.id === me, isEmail = u.id.includes("@");
+        return `<div class="srow"><div class="who"><b>${esc(isEmail ? u.id : "UID " + u.id)}</b>${isMe ? ` <span class="mini">(나)</span>` : ""}<br><span class="pill ${u.role === "admin" ? "adm" : ""}">${u.role === "admin" ? "관리자" : u.role === "staff" ? "직원" : esc(u.role || "-")}</span></div>
+          ${isMe ? "" : `<div class="row" style="flex:none"><button class="sec" data-rr="${esc(u.id)}" data-to="${u.role === "admin" ? "staff" : "admin"}">${u.role === "admin" ? "직원으로" : "관리자로"}</button><button class="danger" data-del="${esc(u.id)}">삭제</button></div>`}</div>`;
+      }).join("") : `<p class="mini">아직 등록된 계정이 없어요.</p>`;
+      q("#sl", p).querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
+        if (!(await askConfirm({ title: "계정을 삭제할까요?", body: `<b>${esc(b.dataset.del)}</b> 계정은 더 이상 직원·관리자 화면을 쓸 수 없어요.`, ok: "삭제", danger: true }))) return;
+        try { await api.s.removeStaff(b.dataset.del); } catch { q("#sr", p).textContent = "삭제하지 못했어요. 관리자 권한과 규칙 게시 상태를 확인해 주세요."; }
+      });
+      q("#sl", p).querySelectorAll("[data-rr]").forEach(b => b.onclick = async () => {
+        const to = b.dataset.to;
+        if (!(await askConfirm({ title: to === "admin" ? "관리자로 바꿀까요?" : "직원으로 바꿀까요?", body: `<b>${esc(b.dataset.rr)}</b> 계정의 역할을 <b>${to === "admin" ? "관리자" : "직원"}</b>으로 변경해요.`, ok: "변경" }))) return;
+        try { await api.s.setStaffRole(b.dataset.rr, to); } catch { q("#sr", p).textContent = "변경하지 못했어요. 관리자 권한과 규칙 게시 상태를 확인해 주세요."; }
+      });
+    };
+    unsubs.push(api.s.subscribeStaff(a => { list = a; draw(); }));
+    q("#sf", p).onsubmit = async ev => {
+      ev.preventDefault(); if (busy) return; const email = q("#se", p).value.trim().toLowerCase(), err = q("#sr", p); err.textContent = "";
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = "이메일 형식을 확인해 주세요."; return; }
+      if (list.some(u => u.id === email)) { err.textContent = "이미 등록된 계정이에요. 아래 목록에서 역할을 바꿀 수 있어요."; return; }
+      busy = true; q("#sa", p).disabled = true;
+      try { await api.s.addStaff(email, role); q("#se", p).value = ""; err.textContent = ""; }
+      catch { err.textContent = "추가하지 못했어요. 관리자 권한과 규칙 게시 상태를 확인해 주세요."; }
+      busy = false; q("#sa", p).disabled = false;
+    };
   }
 
   async function paneWin(p) {
