@@ -234,6 +234,10 @@ function makeDemoApi(backend) {
         const hit = validCode(n) && d.c[n] ? [n] : Object.keys(d.c).filter(c => d.c[c].name.startsWith(t));
         return hit.map(c => ({ ...cardOf(d, c), stamps: stampsOf(d, c) }));
       },
+      async manualStamp(code, booth) {
+        const d = load(); if (!d.c[code] || !BOOTH_IDS.includes(booth)) throw new Error("nocard");
+        if (!d.s[code + ":" + booth]) { d.s[code + ":" + booth] = { at: Date.now(), manual: true }; save(d); }
+      },
       async markClaimed(code) {
         const d = load(); if (!d.c[code] || !BOOTH_IDS.every(b => d.s[code + ":" + b])) throw new Error("incomplete");
         d.c[code].claimed = true; save(d);
@@ -354,6 +358,10 @@ async function makeFirebaseApi(cfg) {
         else docs = (await F.getDocs(F.query(F.collection(db, "cards"), F.where("name", ">=", t), F.where("name", "<=", t + ""), F.limit(20)))).docs;
         return Promise.all(docs.map(async d => ({ ...cardData(d.id, d.data()), stamps: stampMap(await F.getDocs(F.collection(db, "cards", d.id, "stamps"))) })));
       },
+      async manualStamp(code, booth) {
+        await ensure();
+        await F.setDoc(F.doc(db, "cards", code, "stamps", booth), { manual: true, by: (user && user.email || "").toLowerCase().slice(0, 100), at: F.serverTimestamp() });
+      },
       async markClaimed(code) { await F.updateDoc(F.doc(db, "cards", code), { claimed: true }); },
       subscribeAll(cb) {
         let cards = [], stamps = []; const emit = () => cb({ cards, stamps });
@@ -446,7 +454,7 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
       <div class="card"><h2>스탬프 카드 만들기</h2>
         <p class="muted">미션 5개를 모두 완료하면 ${esc(CONFIG.prize)}을 드려요. 순서는 상관없고, 포럼 기간(${esc(CONFIG.forum.label)}) 안에 완료하면 됩니다.</p>
         <form id="f"><label for="og">소속</label>
-          <input id="og" type="text" maxlength="30" autocomplete="organization" placeholder="예) 디지털전략부 / ○○농협 / 농협대학교" required>
+          <input id="og" type="text" maxlength="30" autocomplete="organization" placeholder="예) 제주시농협 / 농협대학교 ○○학과" required>
           <label for="nm" style="margin-top:10px">이름</label>
           <input id="nm" type="text" maxlength="20" autocomplete="name" placeholder="예) 홍길동" required>
           <div class="err" id="e">${esc(msg)}</div><button id="go" type="submit">시작하기</button></form></div>
@@ -743,9 +751,15 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
         const nn = d.n(c), full = nn >= BOOTH_IDS.length;
         return `<div class="card" style="margin:0 0 8px"><b>${esc(c.name)}</b> <span class="mini">${c.org ? esc(c.org) + " · " : ""}코드 ${fmtCode(c.code)}${isTest(c) ? " · 테스트" : ""}</span>${nameCnt[String(c.name || "").replace(/ /g, "").toLowerCase()] > 1 ? ` <span class="pill dup">동일 이름 ${nameCnt[String(c.name || "").replace(/ /g, "").toLowerCase()]}</span>` : ""}
           <div style="margin:6px 0">${CONFIG.booths.map(b => `<span title="${esc(b.name)}" style="font-size:22px;${d.has(c, b.id) ? "" : "filter:grayscale(1);opacity:.35"}">${b.emoji}</span>`).join(" ")} <span class="mini">${nn}/${BOOTH_IDS.length}</span></div>
+          ${!c.claimed && !full ? `<details style="margin:4px 0"><summary class="mini">수동 스탬프 처리 (오류·지연 시)</summary><div class="mini" style="margin:4px 0">직원이 성공을 직접 확인한 미션만 눌러 주세요. 한 번 처리하면 취소할 수 없어요.</div>${CONFIG.booths.filter(b => !d.has(c, b.id)).map(b => `<button class="sec" style="width:auto;margin:2px 4px 2px 0;padding:6px 10px" data-m="${c.code}:${b.id}">${b.emoji} ${esc(b.name)} 완료 처리</button>`).join("")}</details>` : ""}
           ${c.claimed ? `<div class="badge" style="color:#475569">수령 완료</div>` : full ? `<button data-u="${c.code}">${esc(CONFIG.prize)} 지급 완료 처리</button>` : ""}</div>`;
       }).join("") || `<p class="mini">조건에 맞는 참가자가 없어요.</p>`);
       q("#lres", p).querySelectorAll("[data-u]").forEach(b => b.onclick = async () => { b.disabled = true; try { await api.s.markClaimed(b.dataset.u); } catch { b.disabled = false; b.insertAdjacentHTML("afterend", `<div class="err">처리에 실패했어요.</div>`); } });
+      q("#lres", p).querySelectorAll("[data-m]").forEach(b => b.onclick = async () => {
+        const [code, booth] = b.dataset.m.split(":"), bo = CONFIG.booths.find(x => x.id === booth), cd = d.cards.find(x => x.code === code);
+        if (!(await askConfirm({ title: "수동으로 스탬프를 찍을까요?", body: `<b>${esc(cd ? cd.name : "")}</b> 님의 <b>${esc(bo.name)}</b> 미션을 완료 처리해요.<br>성공을 직접 확인했는지 다시 확인해 주세요. <b>취소할 수 없어요.</b>`, ok: "완료 처리" }))) return;
+        b.disabled = true; try { await api.s.manualStamp(code, booth); } catch { b.disabled = false; b.insertAdjacentHTML("afterend", `<div class="err">처리하지 못했어요. 규칙 게시 상태를 확인해 주세요.</div>`); }
+      });
     };
     q("#lq", p).oninput = e => { listQ = e.target.value; draw(); };
     q("#tt", p).onchange = e => { showTest = e.target.checked; draw(); };
