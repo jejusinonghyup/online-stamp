@@ -109,6 +109,7 @@ code{background:#eef2f7;border-radius:5px;padding:1px 5px;font-size:12.5px}
 @keyframes popin{to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 @keyframes popout{to{opacity:0;transform:translate(-50%,-60%) scale(.9)}}
 @media (prefers-reduced-motion: reduce){.fx .pop{animation:popin .01s forwards,popout .5s 3.6s forwards}}
+.pill.dup{background:#fef3c7;color:#92400e}
 
 </style>
 </head>
@@ -151,6 +152,7 @@ const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const BOOTH_IDS = CONFIG.booths.map(b => b.id);
 const boothOf = id => CONFIG.booths.find(b => b.id === id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const personKey = (org, name) => String(org).toLowerCase().replace(/[ /]/g, "") + "|" + String(name).toLowerCase().replace(/[ /]/g, "");
 const rnd = (min, max) => min + (crypto.getRandomValues(new Uint32Array(1))[0] % (max - min + 1));
 const newCode = () => Array.from({ length: 8 }, () => ALPHABET[rnd(0, ALPHABET.length - 1)]).join("");
 const normCode = s => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -177,7 +179,7 @@ function computeStats(cards, stamps) {
 /* ============================================================
    저장소 1) 데모/샘플용 (localStorage 또는 메모리)
    ============================================================ */
-const blankDb = () => ({ c: {}, s: {}, k: {}, win: OPEN_WIN(), staff: { "demo@local": { role: "admin" } } });
+const blankDb = () => ({ c: {}, s: {}, k: {}, win: OPEN_WIN(), pl: {}, staff: { "demo@local": { role: "admin", name: "데모 관리자" } } });
 function makeLocalBackend(key = "stamp_demo_v2") {
   return { load() { try { return JSON.parse(localStorage.getItem(key)) || blankDb(); } catch { return blankDb(); } }, save(d) { localStorage.setItem(key, JSON.stringify(d)); }, reset() { localStorage.removeItem(key); } };
 }
@@ -196,8 +198,10 @@ function makeDemoApi(backend) {
     demo: true, backend,
     p: {
       async create(name, org) {
-        const d = load(); let code; do { code = newCode(); } while (d.c[code]);
-        d.c[code] = { name, org, claimed: false, createdAt: Date.now() }; save(d); return { code };
+        const d = load(); d.pl ||= {}; const pk = personKey(org, name);
+        if (d.pl[pk]) throw new Error("duplicate");
+        let code; do { code = newCode(); } while (d.c[code]);
+        d.c[code] = { name, org, claimed: false, createdAt: Date.now() }; d.pl[pk] = code; save(d); return { code };
       },
       async load(code) { return cardOf(load(), code); },
       async getWindow() { return load().win; },
@@ -211,10 +215,11 @@ function makeDemoApi(backend) {
       },
     },
     s: {
-      async me() { return "demo@local"; },
-      subscribeStaff(cb) { return watch(() => { const st = load().staff || {}; return Object.keys(st).sort().map(id => ({ id, role: st[id].role })); }, cb); },
-      async addStaff(email, role) { const d = load(); d.staff ||= {}; d.staff[email] = { role }; save(d); },
-      async setStaffRole(id, role) { const d = load(); d.staff ||= {}; d.staff[id] = { role }; save(d); },
+      async me() { return "demo@local"; }, async name() { return (load().staff || {})["demo@local"]?.name || ""; },
+      subscribeStaff(cb) { return watch(() => { const st = load().staff || {}; return Object.keys(st).sort().map(id => ({ id, role: st[id].role, name: st[id].name || "" })); }, cb); },
+      async addStaff(email, role, name = "") { const d = load(); d.staff ||= {}; d.staff[email] = name ? { role, name } : { role }; save(d); },
+      async setStaffRole(id, role) { const d = load(); d.staff ||= {}; d.staff[id] = { ...(d.staff[id] || {}), role }; save(d); },
+      async setStaffName(id, name) { const d = load(); d.staff ||= {}; const o = { ...(d.staff[id] || {}) }; if (name) o.name = name; else delete o.name; d.staff[id] = o; save(d); },
       async removeStaff(id) { const d = load(); if (d.staff) delete d.staff[id]; save(d); },
       async isStaff() { return true; }, async role() { return "admin"; }, async login() {}, async loginGoogle() {}, async logout() {},
       async getWindow() { const w = load().win; return { ...w, rehearsal: isOpenWin(w), missing: false }; },
@@ -245,7 +250,7 @@ function makeDemoApi(backend) {
       async resetAll(onProgress = () => {}) {
         const d = load(); if (!isOpenWin(d.win)) throw new Error("not-rehearsal");
         const out = { cards: Object.keys(d.c).length, stamps: Object.keys(d.s).length };
-        d.c = {}; d.s = {}; d.k = {}; save(d); onProgress(1, 1); return out;
+        d.c = {}; d.s = {}; d.k = {}; d.pl = {}; save(d); onProgress(1, 1); return out;
       },
       subscribeStats(cb) {
         return watch(() => {
@@ -276,7 +281,7 @@ async function makeFirebaseApi(cfg) {
   }
   const stampMap = snap => { const o = {}; snap.forEach(d => o[d.id] = d.data().at?.toMillis?.() || Date.now()); return o; };
   const cardData = (id, data) => ({ code: id, name: data.name, org: data.org || "", claimed: !!data.claimed, createdAt: data.createdAt?.toMillis?.() || 0 });
-  let staffRole = "";
+  let staffRole = "", staffName = "";
   const readWindow = async () => {
     const s = await F.getDoc(F.doc(db, "settings", "event"));
     if (!s.exists()) return { ...FORUM_WIN(), missing: true };
@@ -287,13 +292,15 @@ async function makeFirebaseApi(cfg) {
     demo: false,
     p: {
       async create(name, org) {
-        await ensure();
-        for (let i = 0; i < 6; i++) {
-          const code = newCode();
-          try { await F.setDoc(F.doc(db, "cards", code), { name, org, claimed: false, createdAt: F.serverTimestamp() }); return { code }; }
+        await ensure(); const pk = personKey(org, name);
+        for (let i = 0; i < 3; i++) {
+          const code = newCode(), batch = F.writeBatch(db);
+          batch.set(F.doc(db, "players", pk), { code });
+          batch.set(F.doc(db, "cards", code), { name, org, claimed: false, createdAt: F.serverTimestamp() });
+          try { await batch.commit(); return { code }; }
           catch (e) { if (e.code !== "permission-denied") throw e; }
         }
-        throw new Error("create-failed");
+        throw new Error("duplicate");
       },
       async load(code) { await ensure(); const s = await F.getDoc(F.doc(db, "cards", code)); return s.exists() ? cardData(code, s.data()) : null; },
       async getWindow() { await ensure(); return readWindow(); },
@@ -314,15 +321,16 @@ async function makeFirebaseApi(cfg) {
         if (!user || user.isAnonymous) return false;
         let s = await F.getDoc(F.doc(db, "staff", user.uid));
         if (!s.exists() && user.email && user.emailVerified) s = await F.getDoc(F.doc(db, "staff", user.email.toLowerCase()));
-        if (!s.exists()) { staffRole = ""; return false; }
-        staffRole = String(s.data().role || "");
+        if (!s.exists()) { staffRole = ""; staffName = ""; return false; }
+        staffRole = String(s.data().role || ""); staffName = String(s.data().name || "");
         await calibrate(); return true;
       },
-      async role() { return staffRole; },
+      async role() { return staffRole; }, async name() { return staffName; },
       async me() { return user?.email ? user.email.toLowerCase() : ""; },
-      subscribeStaff(cb) { return F.onSnapshot(F.collection(db, "staff"), s => cb(s.docs.map(d => ({ id: d.id, role: String(d.data().role || "") })).sort((a, b) => a.id.localeCompare(b.id)))); },
-      async addStaff(email, role) { await F.setDoc(F.doc(db, "staff", email), { role }); },
-      async setStaffRole(id, role) { await F.setDoc(F.doc(db, "staff", id), { role }); },
+      subscribeStaff(cb) { return F.onSnapshot(F.collection(db, "staff"), s => cb(s.docs.map(d => ({ id: d.id, role: String(d.data().role || ""), name: String(d.data().name || "") })).sort((a, b) => a.id.localeCompare(b.id)))); },
+      async addStaff(email, role, name = "") { await F.setDoc(F.doc(db, "staff", email), name ? { role, name } : { role }); },
+      async setStaffRole(id, role) { await F.updateDoc(F.doc(db, "staff", id), { role }); },
+      async setStaffName(id, name) { await F.updateDoc(F.doc(db, "staff", id), { name: name ? name : F.deleteField() }); },
       async removeStaff(id) { await F.deleteDoc(F.doc(db, "staff", id)); },
       async login(email, pw) {
         user = (await A.signInWithEmailAndPassword(auth, email, pw)).user;
@@ -332,7 +340,7 @@ async function makeFirebaseApi(cfg) {
         const u = (await A.signInWithPopup(auth, new A.GoogleAuthProvider())).user; user = u;
         if (!(await this.isStaff())) { await A.signOut(auth); user = null; const e = new Error("not-staff"); e.email = u.email || ""; throw e; }
       },
-      async logout() { await A.signOut(auth); user = null; staffRole = ""; },
+      async logout() { await A.signOut(auth); user = null; staffRole = ""; staffName = ""; },
       getWindow: readWindow,
       async setWindow(w) { await F.setDoc(F.doc(db, "settings", "event"), { start: F.Timestamp.fromMillis(w.start), end: F.Timestamp.fromMillis(w.end), rehearsal: isOpenWin(w) }); },
       async issueCode(booth) {
@@ -359,6 +367,7 @@ async function makeFirebaseApi(cfg) {
         const st = await F.getDocs(F.collectionGroup(db, "stamps")); st.forEach(d => refs.push(d.ref));
         const cs = await F.getDocs(F.collection(db, "cards")); cs.forEach(d => refs.push(d.ref));
         const kd = await F.getDocs(F.collection(db, "codes")); kd.forEach(d => refs.push(d.ref));
+        const pl = await F.getDocs(F.collection(db, "players")); pl.forEach(d => refs.push(d.ref));
         for (let i = 0; i < refs.length; i += 200) {
           const b = F.writeBatch(db); refs.slice(i, i + 200).forEach(r => b.delete(r)); await b.commit();
           onProgress(Math.min(refs.length, i + 200), refs.length);
@@ -409,7 +418,7 @@ function makeMemoryPersist() { let v = null; return { async get() { return v; },
    화면 (한 화면 = createApp 한 번. 샘플 페이지에서는 두 번 띄운다)
    ============================================================ */
 function createApp(root, { api, persist, notice = "", overlayHost = root.parentNode || root, adminLink = true }) {
-  const unsubs = []; let codeTimer = null, staffTab = "code", staffBooth = "b1", adminTab = "dash", myRole = "", showTest = false, listQ = "", listF = "all", lastN = null;
+  const unsubs = []; let codeTimer = null, staffTab = "code", staffBooth = "b1", adminTab = "dash", myRole = "", myName = "", showTest = false, listQ = "", listF = "all", lastN = null;
   const q = (s, r = root) => r.querySelector(s);
   function cleanup() { while (unsubs.length) { try { unsubs.pop()(); } catch {} } clearInterval(codeTimer); overlayHost.querySelectorAll(".overlay,.fx").forEach(o => o.remove()); }
   const shell = (inner, sub = "미션 스탬프") =>
@@ -448,7 +457,11 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     q("#f").onsubmit = async ev => {
       ev.preventDefault(); const name = q("#nm").value.trim(), org = q("#og").value.trim(); if (!name || !org) { q("#e").textContent = "소속과 이름을 모두 입력해 주세요."; return; } q("#go").disabled = true;
       try { const { code } = await api.p.create(name, org); await persist.set(code); participantView(); }
-      catch (e) { q("#e").textContent = "카드를 만들지 못했어요. 다시 시도해 주세요."; q("#go").disabled = false; }
+      catch (e) {
+        q("#e").textContent = e.message === "duplicate" ? "이미 같은 소속·이름으로 참여하셨어요. 참여는 한 번만 할 수 있어요. 아래 ‘이미 카드가 있어요’에 복구 코드를 입력하거나, 코드를 잊으셨다면 수령 데스크에서 확인해 주세요." : "카드를 만들지 못했어요. 다시 시도해 주세요.";
+        if (e.message === "duplicate") { const dt = root.querySelector("details"); if (dt) dt.open = true; }
+        q("#go").disabled = false;
+      }
     };
     q("#rf").onsubmit = async ev => {
       ev.preventDefault(); const code = normCode(q("#rc").value);
@@ -531,12 +544,12 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
   /* ---------------- 직원 ---------------- */
   async function staffView() {
     render(shell(`<div class="center muted">불러오는 중…</div>`, "직원 모드"));
-    let ok = false; try { ok = await api.s.isStaff(); if (ok) myRole = await api.s.role(); } catch (e) { return fail(e); }
+    let ok = false; try { ok = await api.s.isStaff(); if (ok) { myRole = await api.s.role(); myName = await api.s.name(); } } catch (e) { return fail(e); }
     ok ? renderStaff() : renderStaffLogin();
   }
   async function adminView() {
     render(shell(`<div class="center muted">불러오는 중…</div>`, "관리자 모드"));
-    let ok = false; try { ok = await api.s.isStaff(); if (ok) myRole = await api.s.role(); } catch (e) { return fail(e); }
+    let ok = false; try { ok = await api.s.isStaff(); if (ok) { myRole = await api.s.role(); myName = await api.s.name(); } } catch (e) { return fail(e); }
     if (!ok) return renderStaffLogin("", "admin");
     if (myRole !== "admin") return renderNotAdmin();
     renderAdmin();
@@ -571,7 +584,7 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     cleanup();
     const tabs = [["code", "코드 발급"], ["desk", "수령 데스크"], ["stat", "현황"]];
     render(shell(`<div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${staffTab === k ? "on" : ""}">${l}</button>`).join("")}</div>
-      <div id="pane"></div><div style="text-align:center;margin-top:16px">${adminLink && myRole === "admin" ? `<button class="ghost" id="ad">관리자 화면</button>` : ""}<button class="ghost" id="lo">로그아웃</button></div>`, "직원 모드"));
+      <div id="pane"></div><div style="text-align:center;margin-top:16px">${adminLink && myRole === "admin" ? `<button class="ghost" id="ad">관리자 화면</button>` : ""}<button class="ghost" id="lo">로그아웃</button></div>`, "직원 모드" + (myName ? " · " + myName : "")));
     root.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { staffTab = b.dataset.t; renderStaff(); });
     if (q("#ad")) q("#ad").onclick = () => { location.hash = "#admin"; };
     q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin(); };
@@ -652,11 +665,26 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     });
   }
 
+  function askText({ title, body = "", value = "", placeholder = "", ok = "저장", max = 20 }) {
+    return new Promise(res => {
+      overlayHost.querySelectorAll(".overlay").forEach(o => o.remove());
+      const o = document.createElement("div"); o.className = "overlay";
+      o.innerHTML = `<div class="sheet"><h2>${esc(title)}</h2>${body ? `<p class="muted">${body}</p>` : ""}
+        <input id="tv" type="text" maxlength="${max}" placeholder="${esc(placeholder)}" value="${esc(value)}" autocomplete="off">
+        <div class="row" style="margin-top:12px"><button class="sec" id="no">취소</button><button id="yes">${esc(ok)}</button></div></div>`;
+      overlayHost.appendChild(o);
+      const done = v => { o.remove(); res(v); }, inp = q("#tv", o); inp.focus(); inp.select();
+      q("#no", o).onclick = () => done(null); q("#yes", o).onclick = () => done(inp.value.trim());
+      inp.onkeydown = e => { if (e.key === "Enter") done(inp.value.trim()); };
+      o.onclick = e => { if (e.target === o) done(null); };
+    });
+  }
+
   function renderAdmin() {
     cleanup();
     const tabs = [["dash", "현황"], ["list", "참가자"], ["code", "코드"], ["staff", "직원"], ["win", "기간"], ["reset", "초기화"]];
     render(shell(`<div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${adminTab === k ? "on" : ""}">${l}</button>`).join("")}</div>
-      <div id="pane"></div><div style="text-align:center;margin-top:16px">${adminLink ? `<button class="ghost" id="gs">직원 화면</button>` : ""}<button class="ghost" id="lo">로그아웃</button></div>`, "관리자 모드"));
+      <div id="pane"></div><div style="text-align:center;margin-top:16px">${adminLink ? `<button class="ghost" id="gs">직원 화면</button>` : ""}<button class="ghost" id="lo">로그아웃</button></div>`, "관리자 모드" + (myName ? " · " + myName : "")));
     root.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { adminTab = b.dataset.t; renderAdmin(); });
     if (q("#gs")) q("#gs").onclick = () => { location.hash = "#staff"; };
     q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin("", "admin"); };
@@ -709,10 +737,11 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
         if (listF === "prog" && full) return false; if (listF === "done" && !(full && !c.claimed)) return false; if (listF === "claimed" && !c.claimed) return false;
         if (!t) return true; return (c.name || "").toLowerCase().includes(t) || (c.org || "").toLowerCase().includes(t) || (key.length >= 4 && c.code.includes(key));
       }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      const nameCnt = {}; d.cards.forEach(c => { const k = String(c.name || "").replace(/ /g, "").toLowerCase(); nameCnt[k] = (nameCnt[k] || 0) + 1; });
       const total = rows.length; rows = rows.slice(0, 100);
       q("#lres", p).innerHTML = `<p class="mini">${total}명${total > 100 ? " (최근 100명만 표시)" : ""}</p>` + (rows.map(c => {
         const nn = d.n(c), full = nn >= BOOTH_IDS.length;
-        return `<div class="card" style="margin:0 0 8px"><b>${esc(c.name)}</b> <span class="mini">${c.org ? esc(c.org) + " · " : ""}코드 ${fmtCode(c.code)}${isTest(c) ? " · 테스트" : ""}</span>
+        return `<div class="card" style="margin:0 0 8px"><b>${esc(c.name)}</b> <span class="mini">${c.org ? esc(c.org) + " · " : ""}코드 ${fmtCode(c.code)}${isTest(c) ? " · 테스트" : ""}</span>${nameCnt[String(c.name || "").replace(/ /g, "").toLowerCase()] > 1 ? ` <span class="pill dup">동일 이름 ${nameCnt[String(c.name || "").replace(/ /g, "").toLowerCase()]}</span>` : ""}
           <div style="margin:6px 0">${CONFIG.booths.map(b => `<span title="${esc(b.name)}" style="font-size:22px;${d.has(c, b.id) ? "" : "filter:grayscale(1);opacity:.35"}">${b.emoji}</span>`).join(" ")} <span class="mini">${nn}/${BOOTH_IDS.length}</span></div>
           ${c.claimed ? `<div class="badge" style="color:#475569">수령 완료</div>` : full ? `<button data-u="${c.code}">${esc(CONFIG.prize)} 지급 완료 처리</button>` : ""}</div>`;
       }).join("") || `<p class="mini">조건에 맞는 참가자가 없어요.</p>`);
@@ -731,6 +760,8 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     p.innerHTML = `<div class="card"><h2>직원 등록</h2>
         <p class="muted">직원이 Google 로그인에 쓰는 <b>구글 계정 이메일</b>을 입력하고 역할을 고른 뒤 추가하세요. 추가한 직원은 바로 직원 화면(<code>#staff</code>)에 로그인할 수 있어요.</p>
         <form id="sf" novalidate><label for="se">구글 계정 이메일</label><input id="se" type="email" placeholder="name@gmail.com" autocomplete="off" autocapitalize="none">
+          <label for="sn" style="margin-top:10px">이름 <span class="mini">(선택)</span></label><input id="sn" type="text" maxlength="20" placeholder="예) 홍길동" autocomplete="off">
+          <div style="height:10px"></div>
           <div class="fl" id="rl"><button type="button" data-r="staff" class="on">직원</button><button type="button" data-r="admin">관리자</button></div>
           <p class="mini" id="rh">직원: 코드 발급 · 수령 데스크 · 현황</p>
           <div class="err" id="sr"></div><button type="submit" id="sa">추가</button></form></div>
@@ -741,12 +772,19 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
       q("#sc", p).textContent = list.length + "명";
       q("#sl", p).innerHTML = list.length ? list.map(u => {
         const isMe = u.id === me, isEmail = u.id.includes("@");
-        return `<div class="srow"><div class="who"><b>${esc(isEmail ? u.id : "UID " + u.id)}</b>${isMe ? ` <span class="mini">(나)</span>` : ""}<br><span class="pill ${u.role === "admin" ? "adm" : ""}">${u.role === "admin" ? "관리자" : u.role === "staff" ? "직원" : esc(u.role || "-")}</span></div>
-          ${isMe ? "" : `<div class="row" style="flex:none"><button class="sec" data-rr="${esc(u.id)}" data-to="${u.role === "admin" ? "staff" : "admin"}">${u.role === "admin" ? "직원으로" : "관리자로"}</button><button class="danger" data-del="${esc(u.id)}">삭제</button></div>`}</div>`;
+        const label = isEmail ? u.id : "UID " + u.id;
+        return `<div class="srow"><div class="who"><b>${esc(u.name || label)}</b>${isMe ? ` <span class="mini">(나)</span>` : ""}${u.name ? `<br><span class="mini">${esc(label)}</span>` : ""}<br><span class="pill ${u.role === "admin" ? "adm" : ""}">${u.role === "admin" ? "관리자" : u.role === "staff" ? "직원" : esc(u.role || "-")}</span></div>
+          <div class="row" style="flex:none;flex-wrap:wrap;justify-content:flex-end"><button class="sec" data-nm="${esc(u.id)}">이름</button>${isMe ? "" : `<button class="sec" data-rr="${esc(u.id)}" data-to="${u.role === "admin" ? "staff" : "admin"}">${u.role === "admin" ? "직원으로" : "관리자로"}</button><button class="danger" data-del="${esc(u.id)}">삭제</button>`}</div></div>`;
       }).join("") : `<p class="mini">아직 등록된 계정이 없어요.</p>`;
       q("#sl", p).querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
         if (!(await askConfirm({ title: "계정을 삭제할까요?", body: `<b>${esc(b.dataset.del)}</b> 계정은 더 이상 직원·관리자 화면을 쓸 수 없어요.`, ok: "삭제", danger: true }))) return;
         try { await api.s.removeStaff(b.dataset.del); } catch { q("#sr", p).textContent = "삭제하지 못했어요. 관리자 권한과 규칙 게시 상태를 확인해 주세요."; }
+      });
+      q("#sl", p).querySelectorAll("[data-nm]").forEach(b => b.onclick = async () => {
+        const cur = (list.find(u => u.id === b.dataset.nm) || {}).name || "";
+        const v = await askText({ title: "이름 입력", body: `<b>${esc(b.dataset.nm)}</b> 계정의 이름이에요. 비워 두면 이름 없이 표시돼요.`, value: cur, placeholder: "예) 홍길동" });
+        if (v === null) return;
+        try { await api.s.setStaffName(b.dataset.nm, v); } catch { q("#sr", p).textContent = "이름을 저장하지 못했어요. 관리자 권한과 규칙 게시 상태를 확인해 주세요."; }
       });
       q("#sl", p).querySelectorAll("[data-rr]").forEach(b => b.onclick = async () => {
         const to = b.dataset.to;
@@ -756,11 +794,11 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     };
     unsubs.push(api.s.subscribeStaff(a => { list = a; draw(); }));
     q("#sf", p).onsubmit = async ev => {
-      ev.preventDefault(); if (busy) return; const email = q("#se", p).value.trim().toLowerCase(), err = q("#sr", p); err.textContent = "";
+      ev.preventDefault(); if (busy) return; const email = q("#se", p).value.trim().toLowerCase(), nm = q("#sn", p).value.trim(), err = q("#sr", p); err.textContent = "";
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = "이메일 형식을 확인해 주세요."; return; }
       if (list.some(u => u.id === email)) { err.textContent = "이미 등록된 계정이에요. 아래 목록에서 역할을 바꿀 수 있어요."; return; }
       busy = true; q("#sa", p).disabled = true;
-      try { await api.s.addStaff(email, role); q("#se", p).value = ""; err.textContent = ""; }
+      try { await api.s.addStaff(email, role, nm); q("#se", p).value = ""; q("#sn", p).value = ""; err.textContent = ""; }
       catch { err.textContent = "추가하지 못했어요. 관리자 권한과 규칙 게시 상태를 확인해 주세요."; }
       busy = false; q("#sa", p).disabled = false;
     };
