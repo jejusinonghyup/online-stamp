@@ -98,7 +98,7 @@ const CONFIG = {
   forum: { start: "2026-11-19T00:00:00+09:00", end: "2026-11-21T00:00:00+09:00", label: "11/19(목) ~ 11/20(금)" },
   codeTtlSec: 25,
   prize: "기념품",
-  shopUrl: "https://smart.naver.com/jejusinh",
+  shopUrl: "https://smartstore.naver.com/jejusinh",
   booths: [
     { id: "b1", emoji: "⏱️", name: "5.0초를 잡아라", sub: "스톱워치 5.0초 맞추기에 성공하세요" },
     { id: "b2", emoji: "📦", name: "농산물 탑쌓기 ‘농탑’", sub: "농탑 미션에 성공하세요" },
@@ -241,7 +241,7 @@ async function makeFirebaseApi(cfg) {
       subscribe(code, cb) {
         let card = null, st = {}; const emit = () => { if (card) cb({ card, stamps: st }); };
         const u1 = F.onSnapshot(F.doc(db, "cards", code), s => { card = s.exists() ? cardData(code, s.data()) : null; emit(); });
-        const u2 = F.onSnapshot(F.collection(db, "cards", code, "stamps"), s => { st = stampMap(s); emit(); });
+        const u2 = F.onSnapshot(F.collection(db, "cards", code, "stamps"), s => { if (s.metadata.hasPendingWrites) return; st = stampMap(s); emit(); });
         return () => { u1(); u2(); };
       },
       async stamp(code, booth, input) {
@@ -324,7 +324,7 @@ function makeMemoryPersist() { let v = null; return { async get() { return v; },
 /* ============================================================
    화면 (한 화면 = createApp 한 번. 샘플 페이지에서는 두 번 띄운다)
    ============================================================ */
-function createApp(root, { api, persist, notice = "", overlayHost = root }) {
+function createApp(root, { api, persist, notice = "", overlayHost = root.parentNode || root }) {
   const unsubs = []; let codeTimer = null, staffTab = "code", staffBooth = "b1";
   const q = (s, r = root) => r.querySelector(s);
   function cleanup() { while (unsubs.length) { try { unsubs.pop()(); } catch {} } clearInterval(codeTimer); overlayHost.querySelectorAll(".overlay").forEach(o => o.remove()); }
@@ -353,7 +353,7 @@ function createApp(root, { api, persist, notice = "", overlayHost = root }) {
       <div class="card"><h2>스탬프 카드 만들기</h2>
         <p class="muted">미션 5개를 모두 완료하면 ${esc(CONFIG.prize)}을 드려요. 순서는 상관없고, 포럼 기간(${esc(CONFIG.forum.label)}) 안에 완료하면 됩니다.</p>
         <form id="f"><label for="og">소속</label>
-          <input id="og" type="text" maxlength="30" autocomplete="organization" placeholder="예) 디지털전략부 / 제주시농협 / 농협대학교" required>
+          <input id="og" type="text" maxlength="30" autocomplete="organization" placeholder="예) 제주시농협 / 농협대학교 ○○학과" required>
           <label for="nm" style="margin-top:10px">이름</label>
           <input id="nm" type="text" maxlength="20" autocomplete="name" placeholder="예) 홍길동" required>
           <div class="err" id="e">${esc(msg)}</div><button id="go" type="submit">시작하기</button></form></div>
@@ -438,7 +438,7 @@ function createApp(root, { api, persist, notice = "", overlayHost = root }) {
     q("#gg").onclick = async () => {
       q("#gg").disabled = true;
       try { await api.s.loginGoogle(); renderStaff(); }
-      catch (e) { renderStaffLogin(e.message === "not-staff" ? "직원으로 등록되지 않은 계정이에요" + (e.email ? " (" + e.email + ")" : "") + ". 담당자에게 이메일 등록을 요청하세요." : "Google 로그인에 실패했어요. 팝업 차단과 승인된 도메인을 확인해 주세요."); }
+      catch (e) { renderStaffLogin(e.message === "not-staff" ? "직원으로 등록되지 않은 계정이에요" + (e.email ? " (" + e.email + ")" : "") + ". 담당자에게 이메일 등록을 요청하세요." : "Google 로그인에 실패했어요. 팝업 차단과 승인된 도메인을 확인해 주세요. [오류: " + (e.code || e.message || e) + "]"); }
     };
     q("#f").onsubmit = async ev => {
       ev.preventDefault(); q("#go").disabled = true;
