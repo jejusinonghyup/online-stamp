@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b5fa5">
+<title>[관리자용] 미션 스탬프 · 2026 AX농업포럼 X 제주시농협</title>
+<meta property="og:title" content="[관리자용] 미션 스탬프 · 2026 AX농업포럼 X 제주시농협">
+<meta property="og:description" content="관리자 전용 · 참가자·직원에게 공유하지 마세요">
+<meta name="robots" content="noindex,nofollow">
+<script>window.__ROUTE="admin";</script>
+<style>
+:root{--blue:#0b5fa5;--blue-d:#084a82;--green:#6fae1f;--ink:#1c2733;--mute:#64748b;--line:#e2e8f0;--bg:#f4f7fb;--ok:#15803d;--bad:#b91c1c;--card:#fff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+.app-root{max-width:480px;margin:0 auto;padding-bottom:40px;background:var(--bg)}
+body.single .app-root{min-height:100vh}
+header{background:linear-gradient(90deg,var(--blue) 0 70%,var(--green) 100%);color:#fff;padding:18px 20px 16px}
+header small{opacity:.85;font-size:12px;letter-spacing:.02em}
+header h1{margin:2px 0 0;font-size:20px;font-weight:800}
+.demo{background:#fff7d6;color:#7a5b00;font-size:12px;padding:6px 20px;border-bottom:1px solid #f1e3a2}
+main{padding:16px 16px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.muted{color:var(--mute)}
+.center{text-align:center;padding:40px 0}
+h2{font-size:16px;margin:0 0 4px}
+p{margin:0 0 8px}
+label{display:block;font-size:13px;font-weight:700;margin:0 0 6px}
+input[type=text],input[type=email],input[type=password],input[type=tel]{width:100%;font:inherit;font-size:17px;padding:13px 14px;border:1.5px solid #cbd5e1;border-radius:12px;background:#fff;color:var(--ink)}
+input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(11,95,165,.15)}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:13px 16px;font-weight:700;font-size:16px;background:var(--blue);color:#fff;width:100%}
+button:active{background:var(--blue-d)}
+button.sec{background:#e8eef6;color:var(--blue)}
+button.ghost{background:transparent;color:var(--mute);width:auto;padding:6px 10px;font-size:13px;font-weight:600}
+button:disabled{opacity:.5}
+.err{color:var(--bad);font-size:14px;min-height:20px;margin-top:8px}
+.noti{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.noti b{font-size:18px}
+.prog{height:10px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:8px 0 4px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .4s}
+.slot{display:flex;gap:12px;align-items:center;padding:12px;border:1.5px dashed #cbd5e1;border-radius:16px;background:#fff;margin-bottom:10px}
+.slot.done{border:1.5px solid var(--green);background:#f3faea}
+.stamp{flex:none;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:27px;background:#eef2f7;filter:grayscale(1);opacity:.6}
+.slot.done .stamp{background:#fff;filter:none;opacity:1;border:3px solid var(--green);transform:rotate(-8deg)}
+.slot .t{flex:1;min-width:0}
+.slot .t b{display:block;font-size:15px}
+.slot .t span{display:block;font-size:12.5px;color:var(--mute);line-height:1.4}
+.slot .t a{display:inline-block;margin-top:3px;font-size:13px;color:var(--blue);font-weight:700}
+.slot button{width:auto;padding:10px 12px;font-size:14px;flex:none}
+.badge{font-size:13px;font-weight:800;color:var(--ok);flex:none}
+.win{background:linear-gradient(135deg,#0b5fa5,#2f8f3a);color:#fff;border:0;text-align:center}
+.win .no{font-size:38px;font-weight:900;letter-spacing:.12em;margin:6px 0;font-variant-numeric:tabular-nums}
+.win.claimed{background:#475569}
+.banner{background:#fff7d6;border:1px solid #f1e3a2;color:#7a5b00;border-radius:12px;padding:10px 12px;font-size:13px;margin-bottom:12px}
+.banner.bad{background:#fee2e2;border-color:#fecaca;color:#991b1b}
+.keep{background:#f0f7ff;border-color:#cfe3f7}
+.rec{font-size:28px;font-weight:900;letter-spacing:.14em;text-align:center;color:var(--blue);margin:6px 0 10px;font-variant-numeric:tabular-nums}
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.sheet{background:#fff;width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:20px 18px 24px}
+.code-in{font-size:30px!important;text-align:center;letter-spacing:.35em;font-weight:800}
+.row{display:flex;gap:8px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tabs button{background:#e8eef6;color:var(--blue);padding:10px 4px;font-size:13px}
+.tabs button.on{background:var(--blue);color:#fff}
+.chips{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:12px}
+.chip{background:#fff;color:var(--ink);border:2px solid var(--line);text-align:left;display:flex;gap:10px;align-items:center;font-size:15px;padding:11px 14px}
+.chip.on{border-color:var(--blue);background:#eaf3fc;color:var(--blue-d)}
+.bigcode{font-size:64px;font-weight:900;letter-spacing:.12em;text-align:center;color:var(--blue);margin:8px 0 2px;font-variant-numeric:tabular-nums}
+.bar{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--green);width:100%;transition:width .25s linear}
+.stat{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
+.stat b{display:block;font-size:26px}
+.stat span{font-size:12px;color:var(--mute)}
+.mini{font-size:13px;color:var(--mute)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+details summary{cursor:pointer;color:var(--blue);font-weight:700;font-size:14px;padding:6px 0}
+.app-root.wide{max-width:760px}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:600;margin:0 0 10px;color:var(--ink)}
+.chk input{width:18px;height:18px;flex:none}
+.brow{display:grid;grid-template-columns:minmax(0,1.4fr) 1.6fr auto;gap:8px;align-items:center;margin:8px 0;font-size:13px}
+.bb{height:12px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+.bb i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--green))}
+.fl{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.fl button{width:auto;padding:7px 12px;font-size:13px;background:#e8eef6;color:var(--blue)}
+.fl button.on{background:var(--blue);color:#fff}
+.opts{display:grid;gap:10px;margin:12px 0}
+button.opt{position:relative;text-align:left;display:grid;gap:3px;background:#fff;color:var(--ink);border:2px solid #cbd5e1;padding:14px 16px}
+button.opt b{font-size:16px}
+button.opt small{font-size:12.5px;font-weight:500;color:var(--mute)}
+button.opt:active{background:#eef3f9}
+button.opt.on{background:var(--blue);border-color:var(--blue-d);color:#fff}
+button.opt.on small{color:#dbeafe}
+button.opt.on:active{background:var(--blue-d)}
+button.opt .tag{position:absolute;right:12px;top:12px;font-size:12px;background:#fff;color:var(--blue);border-radius:99px;padding:2px 10px;font-weight:800}
+button.danger{background:var(--bad)}
+button.danger:active{background:#991b1b}
+.srow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line)}
+.srow .who{min-width:0;word-break:break-all;font-size:14px}
+.srow button{width:auto;padding:7px 10px;font-size:13px}
+.pill{display:inline-block;margin-top:3px;font-size:12px;font-weight:800;border-radius:99px;padding:2px 9px;background:#e8eef6;color:var(--blue)}
+.pill.adm{background:var(--blue);color:#fff}
+code{background:#eef2f7;border-radius:5px;padding:1px 5px;font-size:12.5px}
+.fx{position:fixed;inset:0;pointer-events:none;z-index:30;overflow:hidden}
+.phone .fx{position:absolute}
+.fx i{position:absolute;top:-24px;display:block;opacity:0;animation-name:fall;animation-timing-function:cubic-bezier(.3,.6,.5,1);animation-fill-mode:forwards}
+@keyframes fall{0%{opacity:1;transform:translate3d(0,0,0) rotate(0)}85%{opacity:1}100%{opacity:0;transform:translate3d(var(--dx),var(--h),0) rotate(var(--rot))}}
+.fx .pop{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%) scale(.5);opacity:0;background:#fff;border-radius:22px;padding:20px 28px;text-align:center;box-shadow:0 18px 50px rgba(15,23,42,.35);animation:popin .55s cubic-bezier(.2,1.3,.4,1) forwards,popout .5s 3.6s forwards;min-width:240px}
+.fx .pop .big{font-size:54px;line-height:1.1}
+.fx .pop b{display:block;font-size:22px;color:var(--blue);margin:4px 0 2px}
+.fx .pop span{font-size:13px;color:var(--mute)}
+@keyframes popin{to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes popout{to{opacity:0;transform:translate(-50%,-60%) scale(.9)}}
+@media (prefers-reduced-motion: reduce){.fx .pop{animation:popin .01s forwards,popout .5s 3.6s forwards}}
+.pill.dup{background:#fef3c7;color:#92400e}
+
+</style>
+</head>
+<body>
+<div class="app-root" id="app"></div>
+<script type="module">
+/* ============================================================
+   설정 — index.html 에서는 이 블록만 고치면 됩니다
+   firebase : Firebase 콘솔의 웹 앱 설정 객체. null 이면 데모 모드(이 브라우저에서만 동작)
+   forum    : 스탬프를 찍을 수 있는 기간(한국시간). end 는 '이 시각 직전까지'
+   shopUrl  : 미션5(온라인쇼핑몰 알림설정)에서 열어 줄 스토어 주소
+   ============================================================ */
+const CONFIG = {
+  firebase: {
+    apiKey: "AIzaSyBOyT7uSlnRkYN7YtYzkpTAbmfoXCddqtQ",
+    authDomain: "online-stamp.firebaseapp.com",
+    projectId: "online-stamp",
+    storageBucket: "online-stamp.firebasestorage.app",
+    messagingSenderId: "619203181599",
+    appId: "1:619203181599:web:c9017089e32dc25ee9692a"
+  },
+  /* 예) firebase: { apiKey:"…", authDomain:"…", projectId:"…", appId:"…" }, */
+  eventTitle: "2026 AX농업포럼 X 제주시농협",
+  forum: { start: "2026-11-19T00:00:00+09:00", end: "2026-11-21T00:00:00+09:00", label: "11/19(목) ~ 11/20(금)" },
+  codeTtlSec: 25,
+  prize: "기념품",
+  shopUrl: "https://smartstore.naver.com/jejusinh",
+  booths: [
+    { id: "b1", emoji: "⏱️", name: "5.0초를 잡아라", sub: "스톱워치 5.0초 맞추기에 성공하세요" },
+    { id: "b2", emoji: "📦", name: "농산물 탑쌓기 ‘농탑’", sub: "농탑 미션에 성공하세요" },
+    { id: "b3", emoji: "🌟", name: "황금 농산물을 잡아라 ‘골든픽’", sub: "골든픽 미션에 성공하세요" },
+    { id: "b4", emoji: "📸", name: "미션 네컷", sub: "AI 점수 A등급 이상을 받으세요" },
+    { id: "b5", emoji: "🔔", name: "온라인쇼핑몰 알림설정", sub: "제주시농협 온라인 스토어에서 알림을 설정하고 화면을 직원에게 보여 주세요", link: true },
+  ],
+};
+const FB_VER = "10.12.2";
+const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+/* ---------- 유틸 ---------- */
+const BOOTH_IDS = CONFIG.booths.map(b => b.id);
+const boothOf = id => CONFIG.booths.find(b => b.id === id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const personKey = (org, name) => String(org).toLowerCase().replace(/[ /]/g, "") + "|" + String(name).toLowerCase().replace(/[ /]/g, "");
+const rnd = (min, max) => min + (crypto.getRandomValues(new Uint32Array(1))[0] % (max - min + 1));
+const newCode = () => Array.from({ length: 8 }, () => ALPHABET[rnd(0, ALPHABET.length - 1)]).join("");
+const normCode = s => String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+const validCode = c => typeof c === "string" && /^[A-Z2-9]{8}$/.test(c);
+const fmtCode = c => c.slice(0, 4) + "-" + c.slice(4);
+const kst = ms => new Date(ms).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
+const kstTime = ms => new Date(ms).toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
+const FORUM_WIN = () => ({ start: Date.parse(CONFIG.forum.start), end: Date.parse(CONFIG.forum.end) });
+const OPEN_WIN = () => ({ start: Date.parse("2000-01-01T00:00:00Z"), end: Date.parse("2100-01-01T00:00:00Z") });
+const isOpenWin = w => w.start <= Date.parse("2001-01-01") && w.end >= Date.parse("2099-01-01");
+const winState = (w, now = Date.now()) => now < w.start ? "before" : now >= w.end ? "after" : "open";
+
+function computeStats(cards, stamps) {
+  // 이름이 '테스트'로 시작하는 카드는 리허설용으로 보고 집계에서 뺀다
+  const list = cards.filter(c => !/^테스트/.test(c.name || ""));
+  const ok = new Set(list.map(c => c.code));
+  const per = {}; BOOTH_IDS.forEach(b => per[b] = 0);
+  const by = {};
+  stamps.forEach(s => { if (!ok.has(s.code) || per[s.booth] === undefined) return; per[s.booth]++; (by[s.code] ||= new Set()).add(s.booth); });
+  const done = list.filter(c => (by[c.code]?.size || 0) >= BOOTH_IDS.length);
+  return { total: list.length, per, done: done.length, claimed: list.filter(c => c.claimed).length };
+}
+
+/* ============================================================
+   저장소 1) 데모/샘플용 (localStorage 또는 메모리)
+   ============================================================ */
+const blankDb = () => ({ c: {}, s: {}, k: {}, win: OPEN_WIN(), pl: {}, staff: { "demo@local": { role: "admin", name: "데모 관리자" } } });
+function makeLocalBackend(key = "stamp_demo_v2") {
+  return { load() { try { return JSON.parse(localStorage.getItem(key)) || blankDb(); } catch { return blankDb(); } }, save(d) { localStorage.setItem(key, JSON.stringify(d)); }, reset() { localStorage.removeItem(key); } };
+}
+function makeMemoryBackend() {
+  let s = JSON.stringify(blankDb());
+  return { load: () => JSON.parse(s), save: d => { s = JSON.stringify(d); }, reset() { s = JSON.stringify(blankDb()); } };
+}
+function makeDemoApi(backend) {
+  const subs = new Set(); const notify = () => subs.forEach(f => f());
+  addEventListener("storage", notify); setInterval(notify, 800);
+  const load = () => backend.load(); const save = d => { backend.save(d); notify(); };
+  const watch = (compute, cb) => { let last = ""; const f = () => { const v = compute(); const j = JSON.stringify(v); if (j !== last) { last = j; cb(v); } }; subs.add(f); f(); return () => subs.delete(f); };
+  const stampsOf = (d, code) => { const o = {}; BOOTH_IDS.forEach(b => { const s = d.s[code + ":" + b]; if (s) o[b] = s.at; }); return o; };
+  const cardOf = (d, code) => d.c[code] ? { code, ...d.c[code] } : null;
+  return {
+    demo: true, backend,
+    p: {
+      async create(name, org) {
+        const d = load(); d.pl ||= {}; const pk = personKey(org, name);
+        if (d.pl[pk]) throw new Error("duplicate");
+        let code; do { code = newCode(); } while (d.c[code]);
+        d.c[code] = { name, org, claimed: false, createdAt: Date.now() }; d.pl[pk] = code; save(d); return { code };
+      },
+      async load(code) { return cardOf(load(), code); },
+      async getWindow() { return load().win; },
+      subscribe(code, cb) { return watch(() => { const d = load(); const card = cardOf(d, code); return card ? { card, stamps: stampsOf(d, code) } : null; }, v => v && cb(v)); },
+      async stamp(code, booth, input) {
+        const d = load(); if (!d.c[code]) throw new Error("nocard");
+        if (winState(d.win) !== "open") throw new Error("closed");
+        const k = d.k[booth]; if (!k || k.code !== input || Date.now() > k.expiresAt) throw new Error("invalid");
+        if (d.s[code + ":" + booth]) throw new Error("dup");
+        d.s[code + ":" + booth] = { at: Date.now() }; save(d);
+      },
+    },
+    s: {
+      async me() { return "demo@local"; }, async name() { return (load().staff || {})["demo@local"]?.name || ""; },
+      subscribeStaff(cb) { return watch(() => { const st = load().staff || {}; return Object.keys(st).sort().map(id => ({ id, role: st[id].role, name: st[id].name || "" })); }, cb); },
+      async addStaff(email, role, name = "") { const d = load(); d.staff ||= {}; d.staff[email] = name ? { role, name } : { role }; save(d); },
+      async setStaffRole(id, role) { const d = load(); d.staff ||= {}; d.staff[id] = { ...(d.staff[id] || {}), role }; save(d); },
+      async setStaffName(id, name) { const d = load(); d.staff ||= {}; const o = { ...(d.staff[id] || {}) }; if (name) o.name = name; else delete o.name; d.staff[id] = o; save(d); },
+      async removeStaff(id) { const d = load(); if (d.staff) delete d.staff[id]; save(d); },
+      async isStaff() { return true; }, async role() { return "admin"; }, async login() {}, async loginGoogle() {}, async logout() {},
+      async getWindow() { const w = load().win; return { ...w, rehearsal: isOpenWin(w), missing: false }; },
+      async setWindow(w) { const d = load(); d.win = { start: w.start, end: w.end }; save(d); },
+      async issueCode(booth) {
+        const d = load(); const code = String(rnd(100000, 999999));
+        d.k[booth] = { code, expiresAt: Date.now() + CONFIG.codeTtlSec * 1000 }; save(d);
+        return { code, expiresAtMs: d.k[booth].expiresAt };
+      },
+      async lookup(q) {
+        const d = load(); const n = normCode(q); const t = String(q).trim();
+        const hit = validCode(n) && d.c[n] ? [n] : Object.keys(d.c).filter(c => d.c[c].name.startsWith(t));
+        return hit.map(c => ({ ...cardOf(d, c), stamps: stampsOf(d, c) }));
+      },
+      async manualStamp(code, booth) {
+        const d = load(); if (!d.c[code] || !BOOTH_IDS.includes(booth)) throw new Error("nocard");
+        if (!d.s[code + ":" + booth]) { d.s[code + ":" + booth] = { at: Date.now(), manual: true }; save(d); }
+      },
+      async markClaimed(code) {
+        const d = load(); if (!d.c[code] || !BOOTH_IDS.every(b => d.s[code + ":" + b])) throw new Error("incomplete");
+        d.c[code].claimed = true; save(d);
+      },
+      subscribeAll(cb) {
+        return watch(() => {
+          const d = load();
+          return {
+            cards: Object.keys(d.c).map(c => ({ code: c, name: d.c[c].name, org: d.c[c].org || "", claimed: !!d.c[c].claimed, createdAt: d.c[c].createdAt || 0 })),
+            stamps: Object.keys(d.s).map(k => { const [code, booth] = k.split(":"); return { code, booth, at: d.s[k].at || 0 }; }),
+          };
+        }, cb);
+      },
+      async resetAll(onProgress = () => {}) {
+        const d = load(); if (!isOpenWin(d.win)) throw new Error("not-rehearsal");
+        const out = { cards: Object.keys(d.c).length, stamps: Object.keys(d.s).length };
+        d.c = {}; d.s = {}; d.k = {}; d.pl = {}; save(d); onProgress(1, 1); return out;
+      },
+      subscribeStats(cb) {
+        return watch(() => {
+          const d = load();
+          const cards = Object.keys(d.c).map(c => ({ code: c, name: d.c[c].name, claimed: d.c[c].claimed }));
+          const stamps = Object.keys(d.s).map(k => { const [code, booth] = k.split(":"); return { code, booth }; });
+          return computeStats(cards, stamps);
+        }, cb);
+      },
+    },
+  };
+}
+
+/* ============================================================
+   저장소 2) Firebase (Auth + Firestore)
+   ============================================================ */
+async function makeFirebaseApi(cfg) {
+  const base = `https://www.gstatic.com/firebasejs/${FB_VER}/`;
+  const [{ initializeApp }, A, F] = await Promise.all([import(base + "firebase-app.js"), import(base + "firebase-auth.js"), import(base + "firebase-firestore.js")]);
+  const fbApp = initializeApp(cfg); const auth = A.getAuth(fbApp); const db = F.getFirestore(fbApp);
+  let user = await new Promise(res => { const un = A.onAuthStateChanged(auth, u => { un(); res(u); }); });
+  let offset = 0;
+  const ensure = async () => { if (!user) user = (await A.signInAnonymously(auth)).user; return user; };
+  async function calibrate() {
+    const ref = F.doc(db, "codes", "_ping"); const t0 = Date.now();
+    await F.setDoc(ref, { t: F.serverTimestamp() }); const s = await F.getDoc(ref);
+    offset = s.data().t.toMillis() - (t0 + Date.now()) / 2;
+  }
+  const stampMap = snap => { const o = {}; snap.forEach(d => o[d.id] = d.data().at?.toMillis?.() || Date.now()); return o; };
+  const cardData = (id, data) => ({ code: id, name: data.name, org: data.org || "", claimed: !!data.claimed, createdAt: data.createdAt?.toMillis?.() || 0 });
+  let staffRole = "", staffName = "";
+  const readWindow = async () => {
+    const s = await F.getDoc(F.doc(db, "settings", "event"));
+    if (!s.exists()) return { ...FORUM_WIN(), missing: true };
+    const st = s.data().start.toMillis(), en = s.data().end.toMillis();
+    return { start: st, end: en, rehearsal: !!s.data().rehearsal || isOpenWin({ start: st, end: en }), missing: false };
+  };
+  return {
+    demo: false,
+    p: {
+      async create(name, org) {
+        await ensure(); const pk = personKey(org, name);
+        for (let i = 0; i < 3; i++) {
+          const code = newCode(), batch = F.writeBatch(db);
+          batch.set(F.doc(db, "players", pk), { code });
+          batch.set(F.doc(db, "cards", code), { name, org, claimed: false, createdAt: F.serverTimestamp() });
+          try { await batch.commit(); return { code }; }
+          catch (e) { if (e.code !== "permission-denied") throw e; }
+        }
+        throw new Error("duplicate");
+      },
+      async load(code) { await ensure(); const s = await F.getDoc(F.doc(db, "cards", code)); return s.exists() ? cardData(code, s.data()) : null; },
+      async getWindow() { await ensure(); return readWindow(); },
+      subscribe(code, cb) {
+        let card = null, st = {}; const emit = () => { if (card) cb({ card, stamps: st }); };
+        const u1 = F.onSnapshot(F.doc(db, "cards", code), s => { card = s.exists() ? cardData(code, s.data()) : null; emit(); });
+        const u2 = F.onSnapshot(F.collection(db, "cards", code, "stamps"), s => { if (s.metadata.hasPendingWrites) return; st = stampMap(s); emit(); });
+        return () => { u1(); u2(); };
+      },
+      async stamp(code, booth, input) {
+        await ensure();
+        try { await F.setDoc(F.doc(db, "cards", code, "stamps", booth), { code: input, at: F.serverTimestamp() }); }
+        catch (e) { throw new Error(e.code === "permission-denied" ? "invalid" : "net"); }
+      },
+    },
+    s: {
+      async isStaff() {
+        if (!user || user.isAnonymous) return false;
+        let s = await F.getDoc(F.doc(db, "staff", user.uid));
+        if (!s.exists() && user.email && user.emailVerified) s = await F.getDoc(F.doc(db, "staff", user.email.toLowerCase()));
+        if (!s.exists()) { staffRole = ""; staffName = ""; return false; }
+        staffRole = String(s.data().role || ""); staffName = String(s.data().name || "");
+        await calibrate(); return true;
+      },
+      async role() { return staffRole; }, async name() { return staffName; },
+      async me() { return user?.email ? user.email.toLowerCase() : ""; },
+      subscribeStaff(cb) { return F.onSnapshot(F.collection(db, "staff"), s => cb(s.docs.map(d => ({ id: d.id, role: String(d.data().role || ""), name: String(d.data().name || "") })).sort((a, b) => a.id.localeCompare(b.id)))); },
+      async addStaff(email, role, name = "") { await F.setDoc(F.doc(db, "staff", email), name ? { role, name } : { role }); },
+      async setStaffRole(id, role) { await F.updateDoc(F.doc(db, "staff", id), { role }); },
+      async setStaffName(id, name) { await F.updateDoc(F.doc(db, "staff", id), { name: name ? name : F.deleteField() }); },
+      async removeStaff(id) { await F.deleteDoc(F.doc(db, "staff", id)); },
+      async login(email, pw) {
+        user = (await A.signInWithEmailAndPassword(auth, email, pw)).user;
+        if (!(await this.isStaff())) { await A.signOut(auth); user = null; throw new Error("not-staff"); }
+      },
+      async loginGoogle() {
+        const u = (await A.signInWithPopup(auth, new A.GoogleAuthProvider())).user; user = u;
+        if (!(await this.isStaff())) { await A.signOut(auth); user = null; const e = new Error("not-staff"); e.email = u.email || ""; throw e; }
+      },
+      async logout() { await A.signOut(auth); user = null; staffRole = ""; staffName = ""; },
+      getWindow: readWindow,
+      async setWindow(w) { await F.setDoc(F.doc(db, "settings", "event"), { start: F.Timestamp.fromMillis(w.start), end: F.Timestamp.fromMillis(w.end), rehearsal: isOpenWin(w) }); },
+      async issueCode(booth) {
+        const code = String(rnd(100000, 999999));
+        await F.setDoc(F.doc(db, "codes", booth), { code, expiresAt: F.Timestamp.fromMillis(Date.now() + offset + CONFIG.codeTtlSec * 1000) });
+        return { code, expiresAtMs: Date.now() + CONFIG.codeTtlSec * 1000 };
+      },
+      async lookup(q) {
+        const n = normCode(q); const t = String(q).trim(); let docs;
+        if (validCode(n)) { const s = await F.getDoc(F.doc(db, "cards", n)); docs = s.exists() ? [s] : []; }
+        else docs = (await F.getDocs(F.query(F.collection(db, "cards"), F.where("name", ">=", t), F.where("name", "<=", t + ""), F.limit(20)))).docs;
+        return Promise.all(docs.map(async d => ({ ...cardData(d.id, d.data()), stamps: stampMap(await F.getDocs(F.collection(db, "cards", d.id, "stamps"))) })));
+      },
+      async manualStamp(code, booth) {
+        await ensure();
+        await F.setDoc(F.doc(db, "cards", code, "stamps", booth), { manual: true, by: (user && user.email || "").toLowerCase().slice(0, 100), at: F.serverTimestamp() });
+      },
+      async markClaimed(code) { await F.updateDoc(F.doc(db, "cards", code), { claimed: true }); },
+      subscribeAll(cb) {
+        let cards = [], stamps = []; const emit = () => cb({ cards, stamps });
+        const u1 = F.onSnapshot(F.collection(db, "cards"), s => { cards = s.docs.map(d => cardData(d.id, d.data())); emit(); });
+        const u2 = F.onSnapshot(F.collectionGroup(db, "stamps"), s => { stamps = s.docs.map(d => ({ code: d.ref.parent.parent.id, booth: d.id, at: d.data().at?.toMillis?.() || 0 })); emit(); });
+        return () => { u1(); u2(); };
+      },
+      async resetAll(onProgress = () => {}) {
+        const w = await readWindow(); if (!w.rehearsal) throw new Error("not-rehearsal");
+        const refs = [];
+        const st = await F.getDocs(F.collectionGroup(db, "stamps")); st.forEach(d => refs.push(d.ref));
+        const cs = await F.getDocs(F.collection(db, "cards")); cs.forEach(d => refs.push(d.ref));
+        const kd = await F.getDocs(F.collection(db, "codes")); kd.forEach(d => refs.push(d.ref));
+        const pl = await F.getDocs(F.collection(db, "players")); pl.forEach(d => refs.push(d.ref));
+        for (let i = 0; i < refs.length; i += 200) {
+          const b = F.writeBatch(db); refs.slice(i, i + 200).forEach(r => b.delete(r)); await b.commit();
+          onProgress(Math.min(refs.length, i + 200), refs.length);
+        }
+        return { cards: cs.size, stamps: st.size };
+      },
+      subscribeStats(cb) {
+        let cards = [], stamps = []; const emit = () => cb(computeStats(cards, stamps));
+        const u1 = F.onSnapshot(F.collection(db, "cards"), s => { cards = s.docs.map(d => cardData(d.id, d.data())); emit(); });
+        const u2 = F.onSnapshot(F.collectionGroup(db, "stamps"), s => { stamps = s.docs.map(d => ({ code: d.ref.parent.parent.id, booth: d.id })); emit(); });
+        return () => { u1(); u2(); };
+      },
+    },
+  };
+}
+
+/* ============================================================
+   '지워지지 않는' 내 카드 기억 장치
+   스탬프 자체는 서버에 저장되고, 이 기기는 '내 카드 코드'만 기억한다.
+   localStorage + 쿠키 + IndexedDB + 주소(#c=코드) 4중으로 기억하고,
+   하나라도 남아 있으면 나머지를 자동으로 되살린다.
+   ============================================================ */
+function makePersist() {
+  const KEY = "ax_stamp_card_v1";
+  const idb = () => new Promise((res, rej) => { const r = indexedDB.open("ax_stamp", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+  const idbGet = async () => { try { const db = await idb(); return await new Promise(res => { const t = db.transaction("kv").objectStore("kv").get(KEY); t.onsuccess = () => res(t.result); t.onerror = () => res(null); }); } catch { return null; } };
+  const idbSet = async v => { try { const db = await idb(); await new Promise(res => { const t = db.transaction("kv", "readwrite"); v == null ? t.objectStore("kv").delete(KEY) : t.objectStore("kv").put(v, KEY); t.oncomplete = res; t.onerror = res; }); } catch {} };
+  const lsGet = () => { try { return localStorage.getItem(KEY); } catch { return null; } };
+  const lsSet = v => { try { v == null ? localStorage.removeItem(KEY) : localStorage.setItem(KEY, v); } catch {} };
+  const ckGet = () => { try { const m = document.cookie.match(new RegExp("(?:^|; )" + KEY + "=([^;]+)")); return m ? m[1] : null; } catch { return null; } };
+  const ckSet = v => { try { document.cookie = v == null ? `${KEY}=; max-age=0; path=/` : `${KEY}=${v}; max-age=31536000; path=/; SameSite=Lax`; } catch {} };
+  const goRoute = r => { const f = r === "admin" ? "admin.html" : "staff.html"; if (typeof window !== "undefined" && window.__ROUTE) { location.href = f; } else { location.hash = "#" + r; } };
+  const fromUrl = () => { const m = location.hash.match(/[#&]c=([A-Za-z0-9-]+)/); return m ? normCode(m[1]) : null; };
+  return {
+    async get() {
+      const c = [fromUrl(), lsGet(), ckGet(), await idbGet()].map(normCode).find(validCode) || null;
+      if (c) await this.set(c); return c;
+    },
+    async set(c) {
+      lsSet(c); ckSet(c); await idbSet(c);
+      try { if (!location.hash.startsWith("#staff") && !location.hash.startsWith("#admin")) history.replaceState(null, "", location.pathname + location.search + "#c=" + c); } catch {}
+    },
+    async clear() { lsSet(null); ckSet(null); await idbSet(null); },
+  };
+}
+function makeMemoryPersist() { let v = null; return { async get() { return v; }, async set(c) { v = c; }, async clear() { v = null; } }; }
+
+/* ============================================================
+   화면 (한 화면 = createApp 한 번. 샘플 페이지에서는 두 번 띄운다)
+   ============================================================ */
+function createApp(root, { api, persist, notice = "", overlayHost = root.parentNode || root, adminLink = true }) {
+  const unsubs = []; let codeTimer = null, staffTab = "code", staffBooth = "b1", adminTab = "dash", myRole = "", myName = "", showTest = false, listQ = "", listF = "all", lastN = null;
+  const q = (s, r = root) => r.querySelector(s);
+  function cleanup() { while (unsubs.length) { try { unsubs.pop()(); } catch {} } clearInterval(codeTimer); overlayHost.querySelectorAll(".overlay,.fx").forEach(o => o.remove()); }
+  const shell = (inner, sub = "미션 스탬프") =>
+    `<header><small>${esc(CONFIG.eventTitle)}</small><h1>${esc(sub)}</h1></header>` +
+    (notice ? `<div class="demo">${notice}</div>` : api.demo ? `<div class="demo">데모 모드 — 이 브라우저에서만 동작합니다. 실서비스는 설정에 Firebase 키를 넣으세요.</div>` : "") +
+    `<main>${inner}</main>`;
+  const render = html => { root.innerHTML = html; };
+  const fail = e => render(shell(`<div class="card"><h2>연결에 문제가 있어요</h2><p class="muted">네트워크를 확인하고 새로고침해 주세요. 받은 스탬프는 서버에 그대로 있어요.</p><p class="mini">${esc(e.message || e)}</p></div>`));
+
+  /* ---------------- 참가자 ---------------- */
+  async function participantView() {
+    render(shell(`<div class="center muted">불러오는 중…</div>`));
+    let code = null, card = null; lastN = null;
+    try { code = await persist.get(); if (code) card = await api.p.load(code); } catch (e) { return fail(e); }
+    if (!card) return renderJoin(code ? "저장된 카드를 찾지 못했어요. 새로 만들거나 복구 코드를 입력해 주세요." : "");
+    await persist.set(code);
+    let win = { ...FORUM_WIN() }; try { win = await api.p.getWindow(); } catch {}
+    let last = null; const redraw = () => last && renderCard(code, last, win);
+    unsubs.push(api.p.subscribe(code, d => { last = d; redraw(); }));
+    const iv = setInterval(redraw, 30000); unsubs.push(() => clearInterval(iv));
+  }
+
+  function renderJoin(msg = "") {
+    render(shell(`
+      <div class="card"><h2>스탬프 카드 만들기</h2>
+        <p class="muted">미션 5개를 모두 완료하면 ${esc(CONFIG.prize)}을 드려요. 순서는 상관없고, 포럼 기간(${esc(CONFIG.forum.label)}) 안에 완료하면 됩니다.</p>
+        <form id="f"><label for="og">소속</label>
+          <input id="og" type="text" maxlength="30" autocomplete="organization" placeholder="예) 디지털전략부 / ○○농협 / 농협대학교" required>
+          <label for="nm" style="margin-top:10px">이름</label>
+          <input id="nm" type="text" maxlength="20" autocomplete="name" placeholder="예) 홍길동" required>
+          <div class="err" id="e">${esc(msg)}</div><button id="go" type="submit">시작하기</button></form></div>
+      <div class="card"><details><summary>이미 카드가 있어요 (복구 코드로 불러오기)</summary>
+        <form id="rf" style="margin-top:8px"><label for="rc">복구 코드 8자리</label>
+          <input id="rc" type="text" maxlength="9" autocomplete="off" placeholder="ABCD-EFGH" style="text-transform:uppercase;letter-spacing:.12em">
+          <div class="err" id="re"></div><button class="sec" type="submit">내 카드 불러오기</button></form></details></div>`));
+    q("#f").onsubmit = async ev => {
+      ev.preventDefault(); const name = q("#nm").value.trim(), org = q("#og").value.trim(); if (!name || !org) { q("#e").textContent = "소속과 이름을 모두 입력해 주세요."; return; } q("#go").disabled = true;
+      try { const { code } = await api.p.create(name, org); await persist.set(code); participantView(); }
+      catch (e) {
+        q("#e").textContent = e.message === "duplicate" ? "이미 같은 소속·이름으로 참여하셨어요. 참여는 한 번만 할 수 있어요. 아래 ‘이미 카드가 있어요’에 복구 코드를 입력하거나, 코드를 잊으셨다면 수령 데스크에서 확인해 주세요." : "카드를 만들지 못했어요. 다시 시도해 주세요.";
+        if (e.message === "duplicate") { const dt = root.querySelector("details"); if (dt) dt.open = true; }
+        q("#go").disabled = false;
+      }
+    };
+    q("#rf").onsubmit = async ev => {
+      ev.preventDefault(); const code = normCode(q("#rc").value);
+      if (!validCode(code)) { q("#re").textContent = "8자리 코드를 입력해 주세요."; return; }
+      try { const card = await api.p.load(code); if (!card) { q("#re").textContent = "해당 코드의 카드가 없어요. 코드를 다시 확인해 주세요."; return; } await persist.set(code); participantView(); }
+      catch { q("#re").textContent = "불러오지 못했어요. 네트워크를 확인해 주세요."; }
+    };
+  }
+
+  function celebrate() {
+    overlayHost.querySelectorAll(".fx").forEach(o => o.remove());
+    const fx = document.createElement("div"); fx.className = "fx";
+    const still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    fx.innerHTML = `<div class="pop"><div class="big">🎉</div><b>5개 미션 완주!</b><span>수령 데스크에서 ${esc(CONFIG.prize)}을 받아 가세요</span></div>`;
+    overlayHost.appendChild(fx);
+    if (!still) {
+      const H = (fx.clientHeight || 700) + 60, colors = ["#0b5fa5", "#6fae1f", "#f5b301", "#e5484d", "#8e4ec6", "#12a594"];
+      for (let i = 0; i < 90; i++) {
+        const c = document.createElement("i"), w = 6 + Math.random() * 7;
+        c.style.cssText = `left:${Math.random() * 100}%;width:${w}px;height:${w * (0.6 + Math.random() * 1.2)}px;background:${colors[i % colors.length]};--h:${H}px;--dx:${(Math.random() - 0.5) * 160}px;--rot:${(Math.random() * 900 - 450) | 0}deg;animation-duration:${(2 + Math.random() * 1.8).toFixed(2)}s;animation-delay:${(Math.random() * 0.9).toFixed(2)}s;border-radius:${Math.random() < 0.3 ? "50%" : "2px"}`;
+        fx.appendChild(c);
+      }
+    }
+    try { navigator.vibrate && navigator.vibrate([180, 80, 180]); } catch {}
+    setTimeout(() => fx.remove(), 5200);
+  }
+
+  function renderCard(code, { card, stamps }, win) {
+    const n = BOOTH_IDS.filter(b => stamps[b]).length, all = n === BOOTH_IDS.length, st = winState(win);
+    const banner = st === "before" ? `<div class="banner">스탬프는 포럼 기간(${esc(CONFIG.forum.label)})에 찍을 수 있어요. 카드는 미리 만들어 두셔도 돼요.</div>`
+      : st === "after" && !all ? `<div class="banner bad">포럼 기간이 끝났어요. 이미 받은 스탬프는 그대로 보관돼요.</div>` : "";
+    const slots = CONFIG.booths.map((b, i) => stamps[b.id]
+      ? `<div class="slot done"><div class="stamp">${b.emoji}</div><div class="t"><b>${i + 1}. ${esc(b.name)}</b><span>${kstTime(stamps[b.id])} 확인</span></div><span class="badge">완료</span></div>`
+      : `<div class="slot"><div class="stamp">${b.emoji}</div><div class="t"><b>${i + 1}. ${esc(b.name)}</b><span>${esc(b.sub)}</span>${b.link ? `<a href="${esc(CONFIG.shopUrl)}" target="_blank" rel="noopener">온라인 스토어 열기 ›</a>` : ""}</div><button data-b="${b.id}">코드 입력</button></div>`).join("");
+    const win_ = all ? `<div class="card win ${card.claimed ? "claimed" : ""}">
+        <div>${card.claimed ? "수령 완료" : `5종 완료! 🎉 ${esc(CONFIG.prize)} 받으러 가요`}</div><div class="no">${fmtCode(code)}</div>
+        <div>${card.claimed ? "기념품을 받아 가셨어요. 참여해 주셔서 감사합니다." : "수령 데스크에서 이 화면을 보여 주세요."}</div>${card.claimed ? "" : `<button class="ghost" id="again" style="color:#fff;margin-top:6px">🎉 축하 효과 다시 보기</button>`}</div>` : "";
+    render(shell(`
+      <div class="noti"><div>${card.org ? `<span class="mini">${esc(card.org)}</span><br>` : ""}<b>${esc(card.name)}</b>님의 스탬프</div></div>
+      ${banner}${win_}
+      <div class="card"><div class="noti" style="margin:0"><b>${n} / ${BOOTH_IDS.length}</b><span class="mini">성공을 확인한 직원이 코드를 알려 드려요</span></div>
+        <div class="prog"><i style="width:${n / BOOTH_IDS.length * 100}%"></i></div></div>
+      ${slots}
+      <div class="card keep"><h2>🔒 스탬프는 서버에 안전하게 저장돼요</h2>
+        <p class="muted" style="font-size:13px">받은 스탬프는 지워지지 않아요. 브라우저 기록을 지우거나 폰을 바꿔도 아래 복구 코드로 그대로 불러올 수 있으니 화면을 캡처해 두세요.</p>
+        <div class="rec">${fmtCode(code)}</div><button class="sec" id="cp">복구 링크 복사</button><div class="mini" id="cpm" style="margin-top:6px;text-align:center"></div></div>`));
+    root.querySelectorAll("button[data-b]").forEach(btn => btn.onclick = () => openCodeSheet(code, boothOf(btn.dataset.b), win));
+    if (q("#again")) q("#again").onclick = celebrate;
+    if (lastN !== null && lastN < BOOTH_IDS.length && n === BOOTH_IDS.length) celebrate();
+    lastN = n;
+    q("#cp").onclick = async () => {
+      const url = location.origin + location.pathname + "#c=" + code; let ok = false;
+      try { await navigator.clipboard.writeText(url); ok = true; } catch {}
+      q("#cpm").textContent = ok ? "복사했어요. 메모 앱 등에 붙여 두세요." : "복사하지 못했어요. 복구 코드를 캡처해 두세요.";
+    };
+  }
+
+  function openCodeSheet(code, b, win) {
+    overlayHost.querySelectorAll(".overlay").forEach(o => o.remove());
+    const o = document.createElement("div"); o.className = "overlay";
+    o.innerHTML = `<div class="sheet"><h2>${b.emoji} ${esc(b.name)}</h2>
+      <p class="muted">성공을 확인한 직원이 화면에 띄운 6자리 코드를 입력하세요. 코드는 ${CONFIG.codeTtlSec}초만 유효해요.</p>
+      <input class="code-in" id="cd" type="tel" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code">
+      <div class="err" id="ce"></div>
+      <div class="row"><button class="sec" id="cc">닫기</button><button id="ok">스탬프 찍기</button></div></div>`;
+    overlayHost.appendChild(o);
+    const inp = q("#cd", o); inp.focus();
+    o.onclick = e => { if (e.target === o) o.remove(); }; q("#cc", o).onclick = () => o.remove();
+    const msg = { dup: "이미 찍힌 스탬프예요.", net: "네트워크 오류예요. 다시 시도해 주세요.", closed: `포럼 기간(${CONFIG.forum.label})에만 스탬프를 찍을 수 있어요.`, nocard: "카드를 찾지 못했어요. 복구 코드로 다시 불러와 주세요." };
+    const submit = async () => {
+      const input = inp.value.replace(/\D/g, ""); if (input.length !== 6) { q("#ce", o).textContent = "6자리 숫자를 입력해 주세요."; return; }
+      if (winState(win) !== "open") { q("#ce", o).textContent = msg.closed; return; }
+      q("#ok", o).disabled = true;
+      try { await api.p.stamp(code, b.id, input); o.remove(); }
+      catch (e) { q("#ce", o).textContent = msg[e.message] || "코드가 맞지 않거나 만료됐어요. 직원에게 다시 요청해 주세요."; q("#ok", o).disabled = false; inp.select(); }
+    };
+    q("#ok", o).onclick = submit; inp.onkeydown = e => { if (e.key === "Enter") submit(); };
+  }
+
+  /* ---------------- 직원 ---------------- */
+  async function staffView() {
+    render(shell(`<div class="center muted">불러오는 중…</div>`, "직원 모드"));
+    let ok = false; try { ok = await api.s.isStaff(); if (ok) { myRole = await api.s.role(); myName = await api.s.name(); } } catch (e) { return fail(e); }
+    ok ? renderStaff() : renderStaffLogin();
+  }
+  async function adminView() {
+    render(shell(`<div class="center muted">불러오는 중…</div>`, "관리자 모드"));
+    let ok = false; try { ok = await api.s.isStaff(); if (ok) { myRole = await api.s.role(); myName = await api.s.name(); } } catch (e) { return fail(e); }
+    if (!ok) return renderStaffLogin("", "admin");
+    if (myRole !== "admin") return renderNotAdmin();
+    renderAdmin();
+  }
+  function renderNotAdmin() {
+    cleanup();
+    render(shell(`<div class="card"><h2>관리자 권한이 없는 계정이에요</h2>
+      <p class="muted">관리자 화면은 관리자로 등록된 계정만 쓸 수 있어요. 직원 화면은 그대로 이용하실 수 있어요.</p>
+      <div style="display:grid;gap:8px"><button id="gs">직원 화면으로 가기</button><button class="sec" id="lo">로그아웃</button></div></div>`, "관리자 모드"));
+    q("#gs").onclick = () => goRoute("staff");
+    q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin("", "admin"); };
+  }
+  function renderStaffLogin(msg = "", route = "staff") {
+    const title = route === "admin" ? "관리자 모드" : "직원 모드", after = () => route === "admin" ? adminView() : staffView();
+    render(shell(`<div class="card"><h2>${route === "admin" ? "관리자" : "직원"} 로그인</h2>
+      <form id="f"><label for="em">이메일</label><input id="em" type="email" autocomplete="username" required>
+      <label for="pw" style="margin-top:10px">비밀번호</label><input id="pw" type="password" autocomplete="current-password" required>
+      <div class="err" id="e">${esc(msg)}</div><button id="go" type="submit">로그인</button></form>
+      <div class="muted" style="text-align:center;margin:10px 0">또는</div><button id="gg" type="button">Google 계정으로 로그인</button></div>`, title));
+    q("#gg").onclick = async () => {
+      q("#gg").disabled = true;
+      try { await api.s.loginGoogle(); after(); }
+      catch (e) { renderStaffLogin(e.message === "not-staff" ? "직원으로 등록되지 않은 계정이에요" + (e.email ? " (" + e.email + ")" : "") + ". 담당자에게 이메일 등록을 요청하세요." : "Google 로그인에 실패했어요. 팝업 차단과 승인된 도메인을 확인해 주세요. [오류: " + (e.code || e.message || e) + "]", route); }
+    };
+    q("#f").onsubmit = async ev => {
+      ev.preventDefault(); q("#go").disabled = true;
+      try { await api.s.login(q("#em").value.trim(), q("#pw").value); after(); }
+      catch (e) { renderStaffLogin(e.message === "not-staff" ? "직원으로 등록되지 않은 계정이에요." : "이메일 또는 비밀번호를 확인해 주세요.", route); }
+    };
+  }
+  function renderStaff() {
+    cleanup();
+    const tabs = [["code", "코드 발급"], ["desk", "수령 데스크"], ["stat", "현황"]];
+    render(shell(`<div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${staffTab === k ? "on" : ""}">${l}</button>`).join("")}</div>
+      <div id="pane"></div><div style="text-align:center;margin-top:16px">${adminLink && myRole === "admin" ? `<button class="ghost" id="ad">관리자 화면</button>` : ""}<button class="ghost" id="lo">로그아웃</button></div>`, "직원 모드" + (myName ? " · " + myName : "")));
+    root.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { staffTab = b.dataset.t; renderStaff(); });
+    if (q("#ad")) q("#ad").onclick = () => goRoute("admin");
+    q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin(); };
+    ({ code: paneCode, desk: paneDesk, stat: paneStat })[staffTab](q("#pane"));
+  }
+
+  function paneCode(p) {
+    p.innerHTML = `<div class="card"><h2>미션 성공 확인 후 코드 발급</h2>
+      <p class="muted">내가 맡은 부스를 고르고, 참가자가 미션에 성공했을 때만 버튼을 누르세요. 화면의 코드를 참가자에게 보여 주면 됩니다.</p>
+      <div class="chips">${CONFIG.booths.map((b, i) => `<button class="chip ${staffBooth === b.id ? "on" : ""}" data-b="${b.id}"><span>${b.emoji}</span><span>${i + 1}. ${esc(b.name)}</span></button>`).join("")}</div>
+      <button id="issue">성공 확인 · 코드 발급</button><div id="out" style="margin-top:14px"></div></div>`;
+    p.querySelectorAll("[data-b]").forEach(b => b.onclick = () => { staffBooth = b.dataset.b; clearInterval(codeTimer); paneCode(p); });
+    q("#issue", p).onclick = async () => {
+      const btn = q("#issue", p); btn.disabled = true; const out = q("#out", p);
+      try {
+        const { code, expiresAtMs } = await api.s.issueCode(staffBooth); clearInterval(codeTimer);
+        out.innerHTML = `<div class="mini" style="text-align:center">${esc(boothOf(staffBooth).name)}</div><div class="bigcode">${code}</div><div class="bar"><i id="bar"></i></div><div class="mini" id="left" style="text-align:center;margin-top:6px"></div>`;
+        const total = CONFIG.codeTtlSec * 1000;
+        const tick = () => {
+          const left = expiresAtMs - Date.now();
+          if (left <= 0) { clearInterval(codeTimer); out.innerHTML = `<div class="center muted" style="padding:16px 0">코드가 만료됐어요. 다음 참가자에게는 다시 발급하세요.</div>`; btn.disabled = false; return; }
+          q("#bar", out).style.width = (left / total * 100) + "%"; q("#left", out).textContent = Math.ceil(left / 1000) + "초 남음";
+        };
+        tick(); codeTimer = setInterval(tick, 250); setTimeout(() => { btn.disabled = false; }, 1500);
+      } catch { out.innerHTML = `<div class="err">발급에 실패했어요. 네트워크와 로그인을 확인해 주세요.</div>`; btn.disabled = false; }
+    };
+  }
+
+  function paneDesk(p) {
+    p.innerHTML = `<div class="card"><h2>기념품 수령 확인 · 카드 찾기</h2>
+      <p class="muted">참가자 화면의 복구 코드(8자리) 또는 이름으로 조회하세요.</p>
+      <form id="f" class="row"><input id="qq" type="text" placeholder="코드 또는 이름" autocomplete="off" style="flex:1"><button style="width:auto" type="submit">조회</button></form>
+      <div id="res" style="margin-top:14px"></div></div>`;
+    q("#f", p).onsubmit = async ev => {
+      ev.preventDefault(); const t = q("#qq", p).value.trim(); const res = q("#res", p); if (!t) return;
+      res.innerHTML = `<div class="muted">조회 중…</div>`;
+      try {
+        const list = await api.s.lookup(t);
+        if (!list.length) { res.innerHTML = `<div class="err">찾을 수 없어요.</div>`; return; }
+        res.innerHTML = list.map(u => {
+          const n = BOOTH_IDS.filter(b => u.stamps[b]).length, all = n === BOOTH_IDS.length;
+          return `<div class="card" style="margin:0 0 8px"><b>${esc(u.name)}</b> <span class="mini">${u.org ? esc(u.org) + " · " : ""}코드 ${fmtCode(u.code)}</span>
+            <div style="margin:6px 0">${CONFIG.booths.map(b => `<span title="${esc(b.name)}" style="font-size:22px;${u.stamps[b.id] ? "" : "filter:grayscale(1);opacity:.35"}">${b.emoji}</span>`).join(" ")} <span class="mini">${n}/${BOOTH_IDS.length}</span></div>
+            ${u.claimed ? `<div class="badge" style="color:#475569">이미 수령 완료</div>` : all ? `<button data-u="${u.code}">${esc(CONFIG.prize)} 지급 완료 처리</button>` : `<div class="err" style="margin:0">아직 스탬프가 부족해요 (${BOOTH_IDS.length - n}개 남음)</div>`}</div>`;
+        }).join("");
+        res.querySelectorAll("[data-u]").forEach(b => b.onclick = async () => { b.disabled = true; try { await api.s.markClaimed(b.dataset.u); q("#f", p).requestSubmit(); } catch { b.disabled = false; res.insertAdjacentHTML("beforeend", `<div class="err">처리에 실패했어요.</div>`); } });
+      } catch { res.innerHTML = `<div class="err">조회에 실패했어요.</div>`; }
+    };
+  }
+
+  function paneStat(p) {
+    p.innerHTML = `<div class="center muted">집계 중…</div>`;
+    unsubs.push(api.s.subscribeStats(s => {
+      p.innerHTML = `<div class="stat"><div><b>${s.total}</b><span>카드 발급(참가자)</span></div><div><b>${s.done}</b><span>5종 완료</span></div>
+        <div><b>${s.claimed}</b><span>기념품 지급</span></div><div><b>${s.done - s.claimed}</b><span>지급 대기</span></div></div>
+        <div class="card" style="margin-top:12px"><h2>미션별 성공(스탬프) 수</h2><table>
+        ${CONFIG.booths.map((b, i) => `<tr><td>${b.emoji} ${i + 1}. ${esc(b.name)}</td><td style="text-align:right"><b>${s.per[b.id]}</b></td></tr>`).join("")}</table>
+        <p class="mini" style="margin-top:8px">이름이 ‘테스트’로 시작하는 카드는 집계에서 제외돼요.</p></div>`;
+    }));
+  }
+
+  /* ---------------- 관리자 ---------------- */
+  const isTest = c => /^테스트/.test(c.name || "");
+  const hourKey = ms => { const d = new Date(ms + 9 * 3600e3); return `${d.getUTCMonth() + 1}/${d.getUTCDate()} ${String(d.getUTCHours()).padStart(2, "0")}시`; };
+  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const LOADING = `<div class="center muted">불러오는 중…</div>`;
+
+  function askConfirm({ title, body, ok = "확인", danger = false }) {
+    return new Promise(res => {
+      overlayHost.querySelectorAll(".overlay").forEach(o => o.remove());
+      const o = document.createElement("div"); o.className = "overlay";
+      o.innerHTML = `<div class="sheet"><h2>${esc(title)}</h2><p class="muted">${body}</p>
+        <div class="row"><button class="sec" id="no">취소</button><button id="yes" class="${danger ? "danger" : ""}">${esc(ok)}</button></div></div>`;
+      overlayHost.appendChild(o);
+      const done = v => { o.remove(); res(v); };
+      q("#no", o).onclick = () => done(false); q("#yes", o).onclick = () => done(true);
+      o.onclick = e => { if (e.target === o) done(false); };
+    });
+  }
+
+  function askText({ title, body = "", value = "", placeholder = "", ok = "저장", max = 20 }) {
+    return new Promise(res => {
+      overlayHost.querySelectorAll(".overlay").forEach(o => o.remove());
+      const o = document.createElement("div"); o.className = "overlay";
+      o.innerHTML = `<div class="sheet"><h2>${esc(title)}</h2>${body ? `<p class="muted">${body}</p>` : ""}
+        <input id="tv" type="text" maxlength="${max}" placeholder="${esc(placeholder)}" value="${esc(value)}" autocomplete="off">
+        <div class="row" style="margin-top:12px"><button class="sec" id="no">취소</button><button id="yes">${esc(ok)}</button></div></div>`;
+      overlayHost.appendChild(o);
+      const done = v => { o.remove(); res(v); }, inp = q("#tv", o); inp.focus(); inp.select();
+      q("#no", o).onclick = () => done(null); q("#yes", o).onclick = () => done(inp.value.trim());
+      inp.onkeydown = e => { if (e.key === "Enter") done(inp.value.trim()); };
+      o.onclick = e => { if (e.target === o) done(null); };
+    });
+  }
+
+  function renderAdmin() {
+    cleanup();
+    const tabs = [["dash", "현황"], ["list", "참가자"], ["code", "코드"], ["staff", "직원"], ["win", "기간"], ["reset", "초기화"]];
+    render(shell(`<div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${adminTab === k ? "on" : ""}">${l}</button>`).join("")}</div>
+      <div id="pane"></div><div style="text-align:center;margin-top:16px">${adminLink ? `<button class="ghost" id="gs">직원 화면</button>` : ""}<button class="ghost" id="lo">로그아웃</button></div>`, "관리자 모드" + (myName ? " · " + myName : "")));
+    root.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { adminTab = b.dataset.t; renderAdmin(); });
+    if (q("#gs")) q("#gs").onclick = () => goRoute("staff");
+    q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin("", "admin"); };
+    ({ dash: paneDash, list: paneList, code: paneCode, staff: paneStaff, win: paneWin, reset: paneReset })[adminTab](q("#pane"));
+  }
+
+  function detail(all, withTest) {
+    const cards = all.cards.filter(c => withTest || !isTest(c)); const ok = new Set(cards.map(c => c.code));
+    const stamps = all.stamps.filter(s => ok.has(s.code) && BOOTH_IDS.includes(s.booth));
+    const per = {}; BOOTH_IDS.forEach(b => per[b] = 0); const by = {};
+    stamps.forEach(s => { per[s.booth]++; (by[s.code] ||= new Set()).add(s.booth); });
+    const n = c => by[c.code]?.size || 0, has = (c, b) => !!by[c.code]?.has(b);
+    return { cards, stamps, per, n, has, done: cards.filter(c => n(c) >= BOOTH_IDS.length), claimed: cards.filter(c => c.claimed).length };
+  }
+
+  function paneDash(p) {
+    p.innerHTML = LOADING; let all = null;
+    const draw = () => {
+      if (!all) return;
+      const d = detail(all, showTest), total = d.cards.length, nd = d.done.length;
+      const byCode = {}; all.cards.forEach(c => byCode[c.code] = c);
+      const orgs = {}; d.cards.forEach(c => { const k = (c.org || "").trim() || "(미입력)"; const o = orgs[k] ||= { n: 0, done: 0 }; o.n++; if (d.n(c) >= BOOTH_IDS.length) o.done++; });
+      const orgRows = Object.entries(orgs).sort((a, b) => b[1].n - a[1].n).slice(0, 10);
+      const hrs = {}; d.stamps.forEach(s => { if (!s.at) return; const k = hourKey(s.at); const o = hrs[k] ||= { n: 0, t: s.at }; o.n++; o.t = Math.min(o.t, s.at); });
+      const hrRows = Object.entries(hrs).sort((a, b) => a[1].t - b[1].t).slice(-12), hMax = Math.max(1, ...hrRows.map(r => r[1].n));
+      const recent = d.stamps.filter(s => s.at).sort((a, b) => b.at - a.at).slice(0, 10);
+      p.innerHTML = `<label class="chk"><input type="checkbox" id="tt" ${showTest ? "checked" : ""}> 테스트 카드(이름이 ‘테스트’로 시작) 포함해서 보기</label>
+        <div class="stat"><div><b>${total}</b><span>참가 카드</span></div><div><b>${nd}</b><span>5종 완료</span></div>
+          <div><b>${pct(nd, total)}%</b><span>완주율</span></div><div><b>${d.stamps.length}</b><span>찍힌 스탬프 합계</span></div>
+          <div><b>${d.claimed}</b><span>기념품 지급</span></div><div><b>${nd - d.claimed}</b><span>지급 대기</span></div></div>
+        <div class="card" style="margin-top:12px"><h2>미션별 성공 (참가 카드 대비)</h2>
+          ${CONFIG.booths.map((b, i) => `<div class="brow"><span>${b.emoji} ${i + 1}. ${esc(b.name)}</span><div class="bb"><i style="width:${pct(d.per[b.id], total)}%"></i></div><b>${d.per[b.id]}명 · ${pct(d.per[b.id], total)}%</b></div>`).join("")}</div>
+        <div class="card"><h2>소속별 (상위 10)</h2>${orgRows.length ? `<table><tr><th>소속</th><th style="text-align:right">참가</th><th style="text-align:right">완료</th></tr>${orgRows.map(([k, o]) => `<tr><td>${esc(k)}</td><td style="text-align:right">${o.n}</td><td style="text-align:right">${o.done}</td></tr>`).join("")}</table>` : `<p class="mini">아직 데이터가 없어요.</p>`}</div>
+        <div class="card"><h2>시간대별 스탬프 (최근 12개 시간대)</h2>${hrRows.length ? hrRows.map(([k, o]) => `<div class="brow"><span>${k}</span><div class="bb"><i style="width:${pct(o.n, hMax)}%"></i></div><b>${o.n}</b></div>`).join("") : `<p class="mini">아직 데이터가 없어요.</p>`}</div>
+        <div class="card"><h2>최근 스탬프 10건</h2>${recent.length ? `<table>${recent.map(s => { const c = byCode[s.code] || {}; const b = boothOf(s.booth); return `<tr><td>${kstTime(s.at)}</td><td>${esc(c.name || "-")}</td><td>${b.emoji} ${esc(b.name)}</td></tr>`; }).join("")}</table>` : `<p class="mini">아직 데이터가 없어요.</p>`}</div>`;
+      q("#tt", p).onchange = e => { showTest = e.target.checked; draw(); };
+    };
+    unsubs.push(api.s.subscribeAll(a => { all = a; draw(); }));
+  }
+
+  function paneList(p) {
+    p.innerHTML = `<div class="card"><input id="lq" type="text" placeholder="이름 · 소속 · 복구코드 검색" autocomplete="off" value="${esc(listQ)}">
+      <div class="fl">${[["all", "전체"], ["prog", "진행 중"], ["done", "완주·미수령"], ["claimed", "수령 완료"]].map(([k, l]) => `<button data-f="${k}" class="${listF === k ? "on" : ""}">${l}</button>`).join("")}</div>
+      <label class="chk"><input type="checkbox" id="tt" ${showTest ? "checked" : ""}> 테스트 카드 포함</label><div id="lres" class="muted">불러오는 중…</div></div>`;
+    let all = null;
+    const draw = () => {
+      if (!all) return; const d = detail(all, showTest), key = normCode(listQ), t = listQ.trim().toLowerCase();
+      let rows = d.cards.filter(c => {
+        const nn = d.n(c), full = nn >= BOOTH_IDS.length;
+        if (listF === "prog" && full) return false; if (listF === "done" && !(full && !c.claimed)) return false; if (listF === "claimed" && !c.claimed) return false;
+        if (!t) return true; return (c.name || "").toLowerCase().includes(t) || (c.org || "").toLowerCase().includes(t) || (key.length >= 4 && c.code.includes(key));
+      }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      const nameCnt = {}; d.cards.forEach(c => { const k = String(c.name || "").replace(/ /g, "").toLowerCase(); nameCnt[k] = (nameCnt[k] || 0) + 1; });
+      const total = rows.length; rows = rows.slice(0, 100);
+      q("#lres", p).innerHTML = `<p class="mini">${total}명${total > 100 ? " (최근 100명만 표시)" : ""}</p>` + (rows.map(c => {
+        const nn = d.n(c), full = nn >= BOOTH_IDS.length;
+        return `<div class="card" style="margin:0 0 8px"><b>${esc(c.name)}</b> <span class="mini">${c.org ? esc(c.org) + " · " : ""}코드 ${fmtCode(c.code)}${isTest(c) ? " · 테스트" : ""}</span>${nameCnt[String(c.name || "").replace(/ /g, "").toLowerCase()] > 1 ? ` <span class="pill dup">동일 이름 ${nameCnt[String(c.name || "").replace(/ /g, "").toLowerCase()]}</span>` : ""}
+          <div style="margin:6px 0">${CONFIG.booths.map(b => `<span title="${esc(b.name)}" style="font-size:22px;${d.has(c, b.id) ? "" : "filter:grayscale(1);opacity:.35"}">${b.emoji}</span>`).join(" ")} <span class="mini">${nn}/${BOOTH_IDS.length}</span></div>
+          ${!c.claimed && !full ? `<details style="margin:4px 0"><summary class="mini">수동 스탬프 처리 (오류·지연 시)</summary><div class="mini" style="margin:4px 0">직원이 성공을 직접 확인한 미션만 눌러 주세요. 한 번 처리하면 취소할 수 없어요.</div>${CONFIG.booths.filter(b => !d.has(c, b.id)).map(b => `<button class="sec" style="width:auto;margin:2px 4px 2px 0;padding:6px 10px" data-m="${c.code}:${b.id}">${b.emoji} ${esc(b.name)} 완료 처리</button>`).join("")}</details>` : ""}
+          ${c.claimed ? `<div class="badge" style="color:#475569">수령 완료</div>` : full ? `<button data-u="${c.code}">${esc(CONFIG.prize)} 지급 완료 처리</button>` : ""}</div>`;
+      }).join("") || `<p class="mini">조건에 맞는 참가자가 없어요.</p>`);
+      q("#lres", p).querySelectorAll("[data-u]").forEach(b => b.onclick = async () => { b.disabled = true; try { await api.s.markClaimed(b.dataset.u); } catch { b.disabled = false; b.insertAdjacentHTML("afterend", `<div class="err">처리에 실패했어요.</div>`); } });
+      q("#lres", p).querySelectorAll("[data-m]").forEach(b => b.onclick = async () => {
+        const [code, booth] = b.dataset.m.split(":"), bo = CONFIG.booths.find(x => x.id === booth), cd = d.cards.find(x => x.code === code);
+        if (!(await askConfirm({ title: "수동으로 스탬프를 찍을까요?", body: `<b>${esc(cd ? cd.name : "")}</b> 님의 <b>${esc(bo.name)}</b> 미션을 완료 처리해요.<br>성공을 직접 확인했는지 다시 확인해 주세요. <b>취소할 수 없어요.</b>`, ok: "완료 처리" }))) return;
+        b.disabled = true; try { await api.s.manualStamp(code, booth); } catch { b.disabled = false; b.insertAdjacentHTML("afterend", `<div class="err">처리하지 못했어요. 규칙 게시 상태를 확인해 주세요.</div>`); }
+      });
+    };
+    q("#lq", p).oninput = e => { listQ = e.target.value; draw(); };
+    q("#tt", p).onchange = e => { showTest = e.target.checked; draw(); };
+    p.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { listF = b.dataset.f; p.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b)); draw(); });
+    unsubs.push(api.s.subscribeAll(a => { all = a; draw(); }));
+  }
+
+  async function paneStaff(p) {
+    p.innerHTML = LOADING;
+    let me = ""; try { me = await api.s.me(); } catch {}
+    let role = "staff", list = [], busy = false;
+    p.innerHTML = `<div class="card"><h2>직원 등록</h2>
+        <p class="muted">직원이 Google 로그인에 쓰는 <b>구글 계정 이메일</b>을 입력하고 역할을 고른 뒤 추가하세요. 추가한 직원은 바로 직원 화면(<code>#staff</code>)에 로그인할 수 있어요.</p>
+        <form id="sf" novalidate><label for="se">구글 계정 이메일</label><input id="se" type="email" placeholder="name@gmail.com" autocomplete="off" autocapitalize="none">
+          <label for="sn" style="margin-top:10px">이름 <span class="mini">(선택)</span></label><input id="sn" type="text" maxlength="20" placeholder="예) 홍길동" autocomplete="off">
+          <div style="height:10px"></div>
+          <div class="fl" id="rl"><button type="button" data-r="staff" class="on">직원</button><button type="button" data-r="admin">관리자</button></div>
+          <p class="mini" id="rh">직원: 코드 발급 · 수령 데스크 · 현황</p>
+          <div class="err" id="sr"></div><button type="submit" id="sa">추가</button></form></div>
+      <div class="card"><h2>등록된 계정 <span class="mini" id="sc"></span></h2><div id="sl" class="muted">불러오는 중…</div></div>`;
+    const hint = { staff: "직원: 코드 발급 · 수령 데스크 · 현황", admin: "관리자: 직원 기능 + 현황 상세 · 직원 등록 · 기간 설정 · 초기화" };
+    p.querySelectorAll("[data-r]").forEach(b => b.onclick = () => { role = b.dataset.r; p.querySelectorAll("[data-r]").forEach(x => x.classList.toggle("on", x === b)); q("#rh", p).textContent = hint[role]; });
+    const draw = () => {
+      q("#sc", p).textContent = list.length + "명";
+      q("#sl", p).innerHTML = list.length ? list.map(u => {
+        const isMe = u.id === me, isEmail = u.id.includes("@");
+        const label = isEmail ? u.id : "UID " + u.id;
+        return `<div class="srow"><div class="who"><b>${esc(u.name || label)}</b>${isMe ? ` <span class="mini">(나)</span>` : ""}${u.name ? `<br><span class="mini">${esc(label)}</span>` : ""}<br><span class="pill ${u.role === "admin" ? "adm" : ""}">${u.role === "admin" ? "관리자" : u.role === "staff" ? "직원" : esc(u.role || "-")}</span></div>
+          <div class="row" style="flex:none;flex-wrap:wrap;justify-content:flex-end"><button class="sec" data-nm="${esc(u.id)}">이름</button>${isMe ? "" : `<button class="sec" data-rr="${esc(u.id)}" data-to="${u.role === "admin" ? "staff" : "admin"}">${u.role === "admin" ? "직원으로" : "관리자로"}</button><button class="danger" data-del="${esc(u.id)}">삭제</button>`}</div></div>`;
+      }).join("") : `<p class="mini">아직 등록된 계정이 없어요.</p>`;
+      q("#sl", p).querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
+        if (!(await askConfirm({ title: "계정을 삭제할까요?", body: `<b>${esc(b.dataset.del)}</b> 계정은 더 이상 직원·관리자 화면을 쓸 수 없어요.`, ok: "삭제", danger: true }))) return;
+        try { await api.s.removeStaff(b.dataset.del); } catch { q("#sr", p).textContent = "삭제하지 못했어요. 관리자 권한과 규칙 게시 상태를 확인해 주세요."; }
+      });
+      q("#sl", p).querySelectorAll("[data-nm]").forEach(b => b.onclick = async () => {
+        const cur = (list.find(u => u.id === b.dataset.nm) || {}).name || "";
+        const v = await askText({ title: "이름 입력", body: `<b>${esc(b.dataset.nm)}</b> 계정의 이름이에요. 비워 두면 이름 없이 표시돼요.`, value: cur, placeholder: "예) 홍길동" });
+        if (v === null) return;
+        try { await api.s.setStaffName(b.dataset.nm, v); } catch { q("#sr", p).textContent = "이름을 저장하지 못했어요. 관리자 권한과 규칙 게시 상태를 확인해 주세요."; }
+      });
+      q("#sl", p).querySelectorAll("[data-rr]").forEach(b => b.onclick = async () => {
+        const to = b.dataset.to;
+        if (!(await askConfirm({ title: to === "admin" ? "관리자로 바꿀까요?" : "직원으로 바꿀까요?", body: `<b>${esc(b.dataset.rr)}</b> 계정의 역할을 <b>${to === "admin" ? "관리자" : "직원"}</b>으로 변경해요.`, ok: "변경" }))) return;
+        try { await api.s.setStaffRole(b.dataset.rr, to); } catch { q("#sr", p).textContent = "변경하지 못했어요. 관리자 권한과 규칙 게시 상태를 확인해 주세요."; }
+      });
+    };
+    unsubs.push(api.s.subscribeStaff(a => { list = a; draw(); }));
+    q("#sf", p).onsubmit = async ev => {
+      ev.preventDefault(); if (busy) return; const email = q("#se", p).value.trim().toLowerCase(), nm = q("#sn", p).value.trim(), err = q("#sr", p); err.textContent = "";
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { err.textContent = "이메일 형식을 확인해 주세요."; return; }
+      if (list.some(u => u.id === email)) { err.textContent = "이미 등록된 계정이에요. 아래 목록에서 역할을 바꿀 수 있어요."; return; }
+      busy = true; q("#sa", p).disabled = true;
+      try { await api.s.addStaff(email, role, nm); q("#se", p).value = ""; q("#sn", p).value = ""; err.textContent = ""; }
+      catch { err.textContent = "추가하지 못했어요. 관리자 권한과 규칙 게시 상태를 확인해 주세요."; }
+      busy = false; q("#sa", p).disabled = false;
+    };
+  }
+
+  async function paneWin(p) {
+    p.innerHTML = LOADING;
+    let w; try { w = await api.s.getWindow(); } catch { p.innerHTML = `<div class="err">불러오지 못했어요.</div>`; return; }
+    const f = FORUM_WIN(), mode = w.missing ? "none" : w.rehearsal ? "rehearsal" : (w.start === f.start && w.end === f.end ? "forum" : "custom"), st = winState(w);
+    const cur = mode === "rehearsal" ? "리허설 모드 — 기간 제한 없음" : mode === "none" ? "아직 설정되지 않음" : `${kst(w.start)} ~ ${kst(w.end - 60000)}`;
+    p.innerHTML = `<div class="card"><h2>스탬프 허용 기간</h2>
+      ${mode === "none" ? `<div class="banner bad">아직 기간이 설정되지 않았어요. 아래에서 선택해야 스탬프가 찍혀요.</div>` : mode === "custom" ? `<div class="banner">현재 기간이 포럼 기간과 달라요. 아래에서 다시 선택해 주세요.</div>` : ""}
+      <div class="opts">
+        <button class="opt ${mode === "forum" ? "on" : ""}" id="a">${mode === "forum" ? `<span class="tag">✓ 선택됨</span>` : ""}<b>🎪 포럼 기간</b><small>${esc(CONFIG.forum.label)} · 기간 밖에는 스탬프가 찍히지 않아요</small></button>
+        <button class="opt ${mode === "rehearsal" ? "on" : ""}" id="b">${mode === "rehearsal" ? `<span class="tag">✓ 선택됨</span>` : ""}<b>🧪 리허설 모드</b><small>기간 제한 없음 · 이 모드에서만 데이터 초기화가 가능해요</small></button>
+      </div>
+      <p>현재 설정: <b>${cur}</b></p>
+      <p class="mini">${mode === "rehearsal" || st === "open" ? "지금은 스탬프를 찍을 수 있어요." : st === "before" ? "아직 시작 전이라 스탬프가 찍히지 않아요." : "기간이 끝나 스탬프가 찍히지 않아요."}</p>
+      <p class="mini">리허설이 끝나면 반드시 ‘포럼 기간’을 선택해 주세요.</p><div class="err" id="we"></div></div>`;
+    const apply = async (win, label) => { try { await api.s.setWindow(win); paneWin(p); } catch (e) { q("#we", p).textContent = "저장하지 못했어요. 관리자 계정과 규칙 게시 상태를 확인해 주세요."; } };
+    q("#a", p).onclick = () => { if (mode !== "forum") apply(FORUM_WIN()); };
+    q("#b", p).onclick = async () => {
+      if (mode === "rehearsal") return;
+      if (await askConfirm({ title: "리허설 모드로 바꿀까요?", body: "기간 제한이 풀리고 <b>데이터 초기화</b>도 가능해져요. 행사 시작 전에는 반드시 ‘포럼 기간’으로 되돌려 주세요.", ok: "리허설 모드로 변경" })) apply(OPEN_WIN());
+    };
+  }
+
+  async function paneReset(p) {
+    p.innerHTML = LOADING;
+    let w; try { w = await api.s.getWindow(); } catch { p.innerHTML = `<div class="err">불러오지 못했어요.</div>`; return; }
+    if (!w.rehearsal) {
+      p.innerHTML = `<div class="card"><h2>데이터 초기화</h2><div class="banner">초기화는 <b>리허설 모드</b>일 때만 할 수 있어요. 행사 중에 실수로 스탬프가 지워지지 않게 막아 둔 안전장치예요.</div>
+        <button id="gw">기간 설정에서 리허설 모드로 바꾸기</button></div>`;
+      q("#gw", p).onclick = () => { adminTab = "win"; renderAdmin(); }; return;
+    }
+    p.innerHTML = `<div class="card"><h2>데이터 초기화</h2><div class="banner bad">되돌릴 수 없어요. 아래 데이터가 모두 삭제돼요.</div>
+      <table><tr><td>삭제</td><td>참가 카드 <b id="nc">…</b>개 · 스탬프 <b id="ns">…</b>개 · 직원 발급 코드</td></tr><tr><td>유지</td><td>직원·관리자 등록, 기간 설정</td></tr></table>
+      <label class="chk" style="margin-top:12px"><input type="checkbox" id="auto" checked> 초기화가 끝나면 ‘포럼 기간’으로 자동 전환</label>
+      <label for="cf">확인을 위해 <b>초기화</b>라고 입력하세요</label>
+      <input id="cf" type="text" autocomplete="off" placeholder="초기화">
+      <div class="err" id="re"></div><button class="danger" id="run" disabled style="margin-top:8px">초기화 실행</button></div>`;
+    unsubs.push(api.s.subscribeAll(a => { if (q("#nc", p)) { q("#nc", p).textContent = a.cards.length; q("#ns", p).textContent = a.stamps.length; } }));
+    q("#cf", p).oninput = e => { q("#run", p).disabled = e.target.value.trim() !== "초기화"; };
+    q("#run", p).onclick = async () => {
+      if (!(await askConfirm({ title: "정말 초기화할까요?", body: "모든 참가 카드와 스탬프가 <b>영구 삭제</b>돼요.", ok: "초기화", danger: true }))) return;
+      const btn = q("#run", p); btn.disabled = true; q("#cf", p).disabled = true; q("#re", p).textContent = ""; btn.textContent = "삭제 중…";
+      try {
+        const r = await api.s.resetAll((a, b) => { btn.textContent = `삭제 중… ${a}/${b}`; });
+        let sw = false; if (q("#auto", p).checked) { await api.s.setWindow(FORUM_WIN()); sw = true; }
+        p.innerHTML = `<div class="card"><h2>초기화 완료</h2><div class="banner">카드 ${r.cards}개, 스탬프 ${r.stamps}개를 삭제했어요.${sw ? " 기간은 ‘포럼 기간’으로 전환했어요." : " 기간은 아직 ‘리허설 모드’예요. 행사 시작 전에 ‘포럼 기간’으로 바꿔 주세요."}</div>
+          <p class="mini">리허설에 쓴 폰은 저장된 카드를 찾지 못했다고 나올 수 있어요. 그대로 새 카드를 만들면 됩니다.</p><button id="gw">기간 설정 확인하기</button></div>`;
+        q("#gw", p).onclick = () => { adminTab = "win"; renderAdmin(); };
+      } catch (e) {
+        btn.textContent = "초기화 실행"; q("#cf", p).disabled = false; btn.disabled = q("#cf", p).value.trim() !== "초기화";
+        q("#re", p).textContent = e.message === "not-rehearsal" ? "리허설 모드가 아니라서 초기화할 수 없어요." : "초기화하지 못했어요. 관리자 계정과 규칙 게시 상태를 확인해 주세요. [" + (e.code || e.message) + "]";
+      }
+    };
+  }
+
+  return { start(route) { cleanup(); root.classList.toggle("wide", route === "admin"); route === "admin" ? adminView() : route === "staff" ? staffView() : participantView(); }, cleanup };
+}
+
+/* ---------- 시작 (실서비스/데모 공통) ---------- */
+document.body.classList.add("single");
+(async () => {
+  const root = document.getElementById("app");
+  let api;
+  try { api = CONFIG.firebase ? await makeFirebaseApi(CONFIG.firebase) : makeDemoApi(makeLocalBackend()); }
+  catch (e) { root.innerHTML = `<div style="padding:40px 20px;text-align:center">연결하지 못했어요.<br><small>${esc(e.message || e)}</small></div>`; return; }
+  const app = createApp(root, { api, persist: makePersist() });
+  const go = () => app.start(window.__ROUTE || (location.hash.startsWith("#admin") ? "admin" : location.hash.startsWith("#staff") ? "staff" : "p"));
+  addEventListener("hashchange", go); go();
+})();
+</script>
+</body>
+</html>

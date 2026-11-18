@@ -407,6 +407,7 @@ function makePersist() {
   const lsSet = v => { try { v == null ? localStorage.removeItem(KEY) : localStorage.setItem(KEY, v); } catch {} };
   const ckGet = () => { try { const m = document.cookie.match(new RegExp("(?:^|; )" + KEY + "=([^;]+)")); return m ? m[1] : null; } catch { return null; } };
   const ckSet = v => { try { document.cookie = v == null ? `${KEY}=; max-age=0; path=/` : `${KEY}=${v}; max-age=31536000; path=/; SameSite=Lax`; } catch {} };
+  const goRoute = r => { const f = r === "admin" ? "admin.html" : "staff.html"; if (typeof window !== "undefined" && window.__ROUTE) { location.href = f; } else { location.hash = "#" + r; } };
   const fromUrl = () => { const m = location.hash.match(/[#&]c=([A-Za-z0-9-]+)/); return m ? normCode(m[1]) : null; };
   return {
     async get() {
@@ -567,7 +568,7 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     render(shell(`<div class="card"><h2>관리자 권한이 없는 계정이에요</h2>
       <p class="muted">관리자 화면은 관리자로 등록된 계정만 쓸 수 있어요. 직원 화면은 그대로 이용하실 수 있어요.</p>
       <div style="display:grid;gap:8px"><button id="gs">직원 화면으로 가기</button><button class="sec" id="lo">로그아웃</button></div></div>`, "관리자 모드"));
-    q("#gs").onclick = () => { location.hash = "#staff"; };
+    q("#gs").onclick = () => goRoute("staff");
     q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin("", "admin"); };
   }
   function renderStaffLogin(msg = "", route = "staff") {
@@ -594,7 +595,7 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     render(shell(`<div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${staffTab === k ? "on" : ""}">${l}</button>`).join("")}</div>
       <div id="pane"></div><div style="text-align:center;margin-top:16px">${adminLink && myRole === "admin" ? `<button class="ghost" id="ad">관리자 화면</button>` : ""}<button class="ghost" id="lo">로그아웃</button></div>`, "직원 모드" + (myName ? " · " + myName : "")));
     root.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { staffTab = b.dataset.t; renderStaff(); });
-    if (q("#ad")) q("#ad").onclick = () => { location.hash = "#admin"; };
+    if (q("#ad")) q("#ad").onclick = () => goRoute("admin");
     q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin(); };
     ({ code: paneCode, desk: paneDesk, stat: paneStat })[staffTab](q("#pane"));
   }
@@ -694,7 +695,7 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     render(shell(`<div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${adminTab === k ? "on" : ""}">${l}</button>`).join("")}</div>
       <div id="pane"></div><div style="text-align:center;margin-top:16px">${adminLink ? `<button class="ghost" id="gs">직원 화면</button>` : ""}<button class="ghost" id="lo">로그아웃</button></div>`, "관리자 모드" + (myName ? " · " + myName : "")));
     root.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { adminTab = b.dataset.t; renderAdmin(); });
-    if (q("#gs")) q("#gs").onclick = () => { location.hash = "#staff"; };
+    if (q("#gs")) q("#gs").onclick = () => goRoute("staff");
     q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin("", "admin"); };
     ({ dash: paneDash, list: paneList, code: paneCode, staff: paneStaff, win: paneWin, reset: paneReset })[adminTab](q("#pane"));
   }
@@ -883,7 +884,7 @@ document.body.classList.add("single");
   try { api = CONFIG.firebase ? await makeFirebaseApi(CONFIG.firebase) : makeDemoApi(makeLocalBackend()); }
   catch (e) { root.innerHTML = `<div style="padding:40px 20px;text-align:center">연결하지 못했어요.<br><small>${esc(e.message || e)}</small></div>`; return; }
   const app = createApp(root, { api, persist: makePersist() });
-  const go = () => app.start(location.hash.startsWith("#admin") ? "admin" : location.hash.startsWith("#staff") ? "staff" : "p");
+  const go = () => app.start(window.__ROUTE || (location.hash.startsWith("#admin") ? "admin" : location.hash.startsWith("#staff") ? "staff" : "p"));
   addEventListener("hashchange", go); go();
 })();
 </script>
