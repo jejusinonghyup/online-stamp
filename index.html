@@ -84,14 +84,16 @@ details summary{cursor:pointer;color:var(--blue);font-weight:700;font-size:14px;
    forum    : 스탬프를 찍을 수 있는 기간(한국시간). end 는 '이 시각 직전까지'
    shopUrl  : 미션5(온라인쇼핑몰 알림설정)에서 열어 줄 스토어 주소
    ============================================================ */
-const const firebaseConfig = {
-  apiKey: "AIzaSyBOyT7uSlnRkYN7YtYzkpTAbmfoXCddqtQ",
-  authDomain: "online-stamp.firebaseapp.com",
-  projectId: "online-stamp",
-  storageBucket: "online-stamp.firebasestorage.app",
-  messagingSenderId: "619203181599",
-  appId: "1:619203181599:web:c9017089e32dc25ee9692a"
-};
+const CONFIG = {
+  firebase: {
+    apiKey: "AIzaSyBOyT7uSlnRkYN7YtYzkpTAbmfoXCddqtQ",
+    authDomain: "online-stamp.firebaseapp.com",
+    projectId: "online-stamp",
+    storageBucket: "online-stamp.firebasestorage.app",
+    messagingSenderId: "619203181599",
+    appId: "1:619203181599:web:c9017089e32dc25ee9692a"
+  },
+  /* 예) firebase: { apiKey:"…", authDomain:"…", projectId:"…", appId:"…" }, */
   eventTitle: "2026 AX농업포럼 X 제주시농협",
   forum: { start: "2026-11-19T00:00:00+09:00", end: "2026-11-21T00:00:00+09:00", label: "11/19(목) ~ 11/20(금)" },
   codeTtlSec: 25,
@@ -171,7 +173,7 @@ function makeDemoApi(backend) {
       },
     },
     s: {
-      async isStaff() { return true; }, async login() {}, async logout() {},
+      async isStaff() { return true; }, async login() {}, async loginGoogle() {}, async logout() {},
       async getWindow() { return { ...load().win, missing: false }; },
       async setWindow(w) { const d = load(); d.win = { start: w.start, end: w.end }; save(d); },
       async issueCode(booth) {
@@ -251,12 +253,18 @@ async function makeFirebaseApi(cfg) {
     s: {
       async isStaff() {
         if (!user || user.isAnonymous) return false;
-        const s = await F.getDoc(F.doc(db, "staff", user.uid)); if (!s.exists()) return false;
+        let s = await F.getDoc(F.doc(db, "staff", user.uid));
+        if (!s.exists() && user.email && user.emailVerified) s = await F.getDoc(F.doc(db, "staff", user.email.toLowerCase()));
+        if (!s.exists()) return false;
         await calibrate(); return true;
       },
       async login(email, pw) {
         user = (await A.signInWithEmailAndPassword(auth, email, pw)).user;
         if (!(await this.isStaff())) { await A.signOut(auth); user = null; throw new Error("not-staff"); }
+      },
+      async loginGoogle() {
+        const u = (await A.signInWithPopup(auth, new A.GoogleAuthProvider())).user; user = u;
+        if (!(await this.isStaff())) { await A.signOut(auth); user = null; const e = new Error("not-staff"); e.email = u.email || ""; throw e; }
       },
       async logout() { await A.signOut(auth); user = null; },
       getWindow: readWindow,
@@ -425,7 +433,13 @@ function createApp(root, { api, persist, notice = "", overlayHost = root }) {
     render(shell(`<div class="card"><h2>직원 로그인</h2>
       <form id="f"><label for="em">이메일</label><input id="em" type="email" autocomplete="username" required>
       <label for="pw" style="margin-top:10px">비밀번호</label><input id="pw" type="password" autocomplete="current-password" required>
-      <div class="err" id="e">${esc(msg)}</div><button id="go" type="submit">로그인</button></form></div>`, "직원 모드"));
+      <div class="err" id="e">${esc(msg)}</div><button id="go" type="submit">로그인</button></form>
+      <div class="muted" style="text-align:center;margin:10px 0">또는</div><button id="gg" type="button">Google 계정으로 로그인</button></div>`, "직원 모드"));
+    q("#gg").onclick = async () => {
+      q("#gg").disabled = true;
+      try { await api.s.loginGoogle(); renderStaff(); }
+      catch (e) { renderStaffLogin(e.message === "not-staff" ? "직원으로 등록되지 않은 계정이에요" + (e.email ? " (" + e.email + ")" : "") + ". 담당자에게 이메일 등록을 요청하세요." : "Google 로그인에 실패했어요. 팝업 차단과 승인된 도메인을 확인해 주세요."); }
+    };
     q("#f").onsubmit = async ev => {
       ev.preventDefault(); q("#go").disabled = true;
       try { await api.s.login(q("#em").value.trim(), q("#pw").value); renderStaff(); }
