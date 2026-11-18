@@ -84,9 +84,13 @@ details summary{cursor:pointer;color:var(--blue);font-weight:700;font-size:14px;
    forum    : 스탬프를 찍을 수 있는 기간(한국시간). end 는 '이 시각 직전까지'
    shopUrl  : 미션5(온라인쇼핑몰 알림설정)에서 열어 줄 스토어 주소
    ============================================================ */
-const CONFIG = {
-  firebase: null,
-  /* 예) firebase: { apiKey:"…", authDomain:"…", projectId:"…", appId:"…" }, */
+const firebaseConfig = {
+  apiKey: "AIzaSyCwuWD8Zks7PDppvkU1vlCXQlvDFA9_PJs",
+  authDomain: "checklist-f6795.firebaseapp.com",
+  projectId: "checklist-f6795",
+  storageBucket: "checklist-f6795.firebasestorage.app",
+  messagingSenderId: "901255037556",
+  appId: "1:901255037556:web:55953089f92bcb788ec721"
   eventTitle: "2026 AX농업포럼 X 제주시농협",
   forum: { start: "2026-11-19T00:00:00+09:00", end: "2026-11-21T00:00:00+09:00", label: "11/19(목) ~ 11/20(금)" },
   codeTtlSec: 25,
