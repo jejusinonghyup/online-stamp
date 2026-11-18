@@ -72,6 +72,26 @@ button:disabled{opacity:.5}
 table{width:100%;border-collapse:collapse;font-size:14px}
 td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
 details summary{cursor:pointer;color:var(--blue);font-weight:700;font-size:14px;padding:6px 0}
+.app-root.wide{max-width:760px}
+.chk{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:600;margin:0 0 10px;color:var(--ink)}
+.chk input{width:18px;height:18px;flex:none}
+.brow{display:grid;grid-template-columns:minmax(0,1.4fr) 1.6fr auto;gap:8px;align-items:center;margin:8px 0;font-size:13px}
+.bb{height:12px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+.bb i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--green))}
+.fl{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.fl button{width:auto;padding:7px 12px;font-size:13px;background:#e8eef6;color:var(--blue)}
+.fl button.on{background:var(--blue);color:#fff}
+.opts{display:grid;gap:10px;margin:12px 0}
+button.opt{position:relative;text-align:left;display:grid;gap:3px;background:#fff;color:var(--ink);border:2px solid #cbd5e1;padding:14px 16px}
+button.opt b{font-size:16px}
+button.opt small{font-size:12.5px;font-weight:500;color:var(--mute)}
+button.opt:active{background:#eef3f9}
+button.opt.on{background:var(--blue);border-color:var(--blue-d);color:#fff}
+button.opt.on small{color:#dbeafe}
+button.opt.on:active{background:var(--blue-d)}
+button.opt .tag{position:absolute;right:12px;top:12px;font-size:12px;background:#fff;color:var(--blue);border-radius:99px;padding:2px 10px;font-weight:800}
+button.danger{background:var(--bad)}
+button.danger:active{background:#991b1b}
 
 </style>
 </head>
@@ -123,6 +143,7 @@ const kst = ms => new Date(ms).toLocaleString("ko-KR", { timeZone: "Asia/Seoul",
 const kstTime = ms => new Date(ms).toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" });
 const FORUM_WIN = () => ({ start: Date.parse(CONFIG.forum.start), end: Date.parse(CONFIG.forum.end) });
 const OPEN_WIN = () => ({ start: Date.parse("2000-01-01T00:00:00Z"), end: Date.parse("2100-01-01T00:00:00Z") });
+const isOpenWin = w => w.start <= Date.parse("2001-01-01") && w.end >= Date.parse("2099-01-01");
 const winState = (w, now = Date.now()) => now < w.start ? "before" : now >= w.end ? "after" : "open";
 
 function computeStats(cards, stamps) {
@@ -173,8 +194,8 @@ function makeDemoApi(backend) {
       },
     },
     s: {
-      async isStaff() { return true; }, async login() {}, async loginGoogle() {}, async logout() {},
-      async getWindow() { return { ...load().win, missing: false }; },
+      async isStaff() { return true; }, async role() { return "admin"; }, async login() {}, async loginGoogle() {}, async logout() {},
+      async getWindow() { const w = load().win; return { ...w, rehearsal: isOpenWin(w), missing: false }; },
       async setWindow(w) { const d = load(); d.win = { start: w.start, end: w.end }; save(d); },
       async issueCode(booth) {
         const d = load(); const code = String(rnd(100000, 999999));
@@ -189,6 +210,20 @@ function makeDemoApi(backend) {
       async markClaimed(code) {
         const d = load(); if (!d.c[code] || !BOOTH_IDS.every(b => d.s[code + ":" + b])) throw new Error("incomplete");
         d.c[code].claimed = true; save(d);
+      },
+      subscribeAll(cb) {
+        return watch(() => {
+          const d = load();
+          return {
+            cards: Object.keys(d.c).map(c => ({ code: c, name: d.c[c].name, org: d.c[c].org || "", claimed: !!d.c[c].claimed, createdAt: d.c[c].createdAt || 0 })),
+            stamps: Object.keys(d.s).map(k => { const [code, booth] = k.split(":"); return { code, booth, at: d.s[k].at || 0 }; }),
+          };
+        }, cb);
+      },
+      async resetAll(onProgress = () => {}) {
+        const d = load(); if (!isOpenWin(d.win)) throw new Error("not-rehearsal");
+        const out = { cards: Object.keys(d.c).length, stamps: Object.keys(d.s).length };
+        d.c = {}; d.s = {}; d.k = {}; save(d); onProgress(1, 1); return out;
       },
       subscribeStats(cb) {
         return watch(() => {
@@ -218,11 +253,13 @@ async function makeFirebaseApi(cfg) {
     offset = s.data().t.toMillis() - (t0 + Date.now()) / 2;
   }
   const stampMap = snap => { const o = {}; snap.forEach(d => o[d.id] = d.data().at?.toMillis?.() || Date.now()); return o; };
-  const cardData = (id, data) => ({ code: id, name: data.name, org: data.org || "", claimed: !!data.claimed });
+  const cardData = (id, data) => ({ code: id, name: data.name, org: data.org || "", claimed: !!data.claimed, createdAt: data.createdAt?.toMillis?.() || 0 });
+  let staffRole = "";
   const readWindow = async () => {
     const s = await F.getDoc(F.doc(db, "settings", "event"));
     if (!s.exists()) return { ...FORUM_WIN(), missing: true };
-    return { start: s.data().start.toMillis(), end: s.data().end.toMillis(), missing: false };
+    const st = s.data().start.toMillis(), en = s.data().end.toMillis();
+    return { start: st, end: en, rehearsal: !!s.data().rehearsal || isOpenWin({ start: st, end: en }), missing: false };
   };
   return {
     demo: false,
@@ -255,9 +292,11 @@ async function makeFirebaseApi(cfg) {
         if (!user || user.isAnonymous) return false;
         let s = await F.getDoc(F.doc(db, "staff", user.uid));
         if (!s.exists() && user.email && user.emailVerified) s = await F.getDoc(F.doc(db, "staff", user.email.toLowerCase()));
-        if (!s.exists()) return false;
+        if (!s.exists()) { staffRole = ""; return false; }
+        staffRole = String(s.data().role || "");
         await calibrate(); return true;
       },
+      async role() { return staffRole; },
       async login(email, pw) {
         user = (await A.signInWithEmailAndPassword(auth, email, pw)).user;
         if (!(await this.isStaff())) { await A.signOut(auth); user = null; throw new Error("not-staff"); }
@@ -266,9 +305,9 @@ async function makeFirebaseApi(cfg) {
         const u = (await A.signInWithPopup(auth, new A.GoogleAuthProvider())).user; user = u;
         if (!(await this.isStaff())) { await A.signOut(auth); user = null; const e = new Error("not-staff"); e.email = u.email || ""; throw e; }
       },
-      async logout() { await A.signOut(auth); user = null; },
+      async logout() { await A.signOut(auth); user = null; staffRole = ""; },
       getWindow: readWindow,
-      async setWindow(w) { await F.setDoc(F.doc(db, "settings", "event"), { start: F.Timestamp.fromMillis(w.start), end: F.Timestamp.fromMillis(w.end) }); },
+      async setWindow(w) { await F.setDoc(F.doc(db, "settings", "event"), { start: F.Timestamp.fromMillis(w.start), end: F.Timestamp.fromMillis(w.end), rehearsal: isOpenWin(w) }); },
       async issueCode(booth) {
         const code = String(rnd(100000, 999999));
         await F.setDoc(F.doc(db, "codes", booth), { code, expiresAt: F.Timestamp.fromMillis(Date.now() + offset + CONFIG.codeTtlSec * 1000) });
@@ -281,6 +320,24 @@ async function makeFirebaseApi(cfg) {
         return Promise.all(docs.map(async d => ({ ...cardData(d.id, d.data()), stamps: stampMap(await F.getDocs(F.collection(db, "cards", d.id, "stamps"))) })));
       },
       async markClaimed(code) { await F.updateDoc(F.doc(db, "cards", code), { claimed: true }); },
+      subscribeAll(cb) {
+        let cards = [], stamps = []; const emit = () => cb({ cards, stamps });
+        const u1 = F.onSnapshot(F.collection(db, "cards"), s => { cards = s.docs.map(d => cardData(d.id, d.data())); emit(); });
+        const u2 = F.onSnapshot(F.collectionGroup(db, "stamps"), s => { stamps = s.docs.map(d => ({ code: d.ref.parent.parent.id, booth: d.id, at: d.data().at?.toMillis?.() || 0 })); emit(); });
+        return () => { u1(); u2(); };
+      },
+      async resetAll(onProgress = () => {}) {
+        const w = await readWindow(); if (!w.rehearsal) throw new Error("not-rehearsal");
+        const refs = [];
+        const st = await F.getDocs(F.collectionGroup(db, "stamps")); st.forEach(d => refs.push(d.ref));
+        const cs = await F.getDocs(F.collection(db, "cards")); cs.forEach(d => refs.push(d.ref));
+        const kd = await F.getDocs(F.collection(db, "codes")); kd.forEach(d => refs.push(d.ref));
+        for (let i = 0; i < refs.length; i += 200) {
+          const b = F.writeBatch(db); refs.slice(i, i + 200).forEach(r => b.delete(r)); await b.commit();
+          onProgress(Math.min(refs.length, i + 200), refs.length);
+        }
+        return { cards: cs.size, stamps: st.size };
+      },
       subscribeStats(cb) {
         let cards = [], stamps = []; const emit = () => cb(computeStats(cards, stamps));
         const u1 = F.onSnapshot(F.collection(db, "cards"), s => { cards = s.docs.map(d => cardData(d.id, d.data())); emit(); });
@@ -314,7 +371,7 @@ function makePersist() {
     },
     async set(c) {
       lsSet(c); ckSet(c); await idbSet(c);
-      try { if (!location.hash.startsWith("#staff")) history.replaceState(null, "", location.pathname + location.search + "#c=" + c); } catch {}
+      try { if (!location.hash.startsWith("#staff") && !location.hash.startsWith("#admin")) history.replaceState(null, "", location.pathname + location.search + "#c=" + c); } catch {}
     },
     async clear() { lsSet(null); ckSet(null); await idbSet(null); },
   };
@@ -324,8 +381,8 @@ function makeMemoryPersist() { let v = null; return { async get() { return v; },
 /* ============================================================
    화면 (한 화면 = createApp 한 번. 샘플 페이지에서는 두 번 띄운다)
    ============================================================ */
-function createApp(root, { api, persist, notice = "", overlayHost = root.parentNode || root }) {
-  const unsubs = []; let codeTimer = null, staffTab = "code", staffBooth = "b1";
+function createApp(root, { api, persist, notice = "", overlayHost = root.parentNode || root, adminLink = true }) {
+  const unsubs = []; let codeTimer = null, staffTab = "code", staffBooth = "b1", adminTab = "dash", myRole = "", showTest = false, listQ = "", listF = "all";
   const q = (s, r = root) => r.querySelector(s);
   function cleanup() { while (unsubs.length) { try { unsubs.pop()(); } catch {} } clearInterval(codeTimer); overlayHost.querySelectorAll(".overlay").forEach(o => o.remove()); }
   const shell = (inner, sub = "미션 스탬프") =>
@@ -426,34 +483,51 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
   /* ---------------- 직원 ---------------- */
   async function staffView() {
     render(shell(`<div class="center muted">불러오는 중…</div>`, "직원 모드"));
-    let ok = false; try { ok = await api.s.isStaff(); } catch (e) { return fail(e); }
+    let ok = false; try { ok = await api.s.isStaff(); if (ok) myRole = await api.s.role(); } catch (e) { return fail(e); }
     ok ? renderStaff() : renderStaffLogin();
   }
-  function renderStaffLogin(msg = "") {
-    render(shell(`<div class="card"><h2>직원 로그인</h2>
+  async function adminView() {
+    render(shell(`<div class="center muted">불러오는 중…</div>`, "관리자 모드"));
+    let ok = false; try { ok = await api.s.isStaff(); if (ok) myRole = await api.s.role(); } catch (e) { return fail(e); }
+    if (!ok) return renderStaffLogin("", "admin");
+    if (myRole !== "admin") return renderNotAdmin();
+    renderAdmin();
+  }
+  function renderNotAdmin() {
+    cleanup();
+    render(shell(`<div class="card"><h2>관리자 권한이 없는 계정이에요</h2>
+      <p class="muted">관리자 화면은 관리자로 등록된 계정만 쓸 수 있어요. 직원 화면은 그대로 이용하실 수 있어요.</p>
+      <div style="display:grid;gap:8px"><button id="gs">직원 화면으로 가기</button><button class="sec" id="lo">로그아웃</button></div></div>`, "관리자 모드"));
+    q("#gs").onclick = () => { location.hash = "#staff"; };
+    q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin("", "admin"); };
+  }
+  function renderStaffLogin(msg = "", route = "staff") {
+    const title = route === "admin" ? "관리자 모드" : "직원 모드", after = () => route === "admin" ? adminView() : staffView();
+    render(shell(`<div class="card"><h2>${route === "admin" ? "관리자" : "직원"} 로그인</h2>
       <form id="f"><label for="em">이메일</label><input id="em" type="email" autocomplete="username" required>
       <label for="pw" style="margin-top:10px">비밀번호</label><input id="pw" type="password" autocomplete="current-password" required>
       <div class="err" id="e">${esc(msg)}</div><button id="go" type="submit">로그인</button></form>
-      <div class="muted" style="text-align:center;margin:10px 0">또는</div><button id="gg" type="button">Google 계정으로 로그인</button></div>`, "직원 모드"));
+      <div class="muted" style="text-align:center;margin:10px 0">또는</div><button id="gg" type="button">Google 계정으로 로그인</button></div>`, title));
     q("#gg").onclick = async () => {
       q("#gg").disabled = true;
-      try { await api.s.loginGoogle(); renderStaff(); }
-      catch (e) { renderStaffLogin(e.message === "not-staff" ? "직원으로 등록되지 않은 계정이에요" + (e.email ? " (" + e.email + ")" : "") + ". 담당자에게 이메일 등록을 요청하세요." : "Google 로그인에 실패했어요. 팝업 차단과 승인된 도메인을 확인해 주세요. [오류: " + (e.code || e.message || e) + "]"); }
+      try { await api.s.loginGoogle(); after(); }
+      catch (e) { renderStaffLogin(e.message === "not-staff" ? "직원으로 등록되지 않은 계정이에요" + (e.email ? " (" + e.email + ")" : "") + ". 담당자에게 이메일 등록을 요청하세요." : "Google 로그인에 실패했어요. 팝업 차단과 승인된 도메인을 확인해 주세요. [오류: " + (e.code || e.message || e) + "]", route); }
     };
     q("#f").onsubmit = async ev => {
       ev.preventDefault(); q("#go").disabled = true;
-      try { await api.s.login(q("#em").value.trim(), q("#pw").value); renderStaff(); }
-      catch (e) { renderStaffLogin(e.message === "not-staff" ? "직원으로 등록되지 않은 계정이에요." : "이메일 또는 비밀번호를 확인해 주세요."); }
+      try { await api.s.login(q("#em").value.trim(), q("#pw").value); after(); }
+      catch (e) { renderStaffLogin(e.message === "not-staff" ? "직원으로 등록되지 않은 계정이에요." : "이메일 또는 비밀번호를 확인해 주세요.", route); }
     };
   }
   function renderStaff() {
     cleanup();
-    const tabs = [["code", "코드 발급"], ["desk", "수령 데스크"], ["stat", "현황"], ["set", "설정"]];
+    const tabs = [["code", "코드 발급"], ["desk", "수령 데스크"], ["stat", "현황"]];
     render(shell(`<div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${staffTab === k ? "on" : ""}">${l}</button>`).join("")}</div>
-      <div id="pane"></div><div style="text-align:center;margin-top:16px"><button class="ghost" id="lo">로그아웃</button></div>`, "직원 모드"));
+      <div id="pane"></div><div style="text-align:center;margin-top:16px">${adminLink && myRole === "admin" ? `<button class="ghost" id="ad">관리자 화면</button>` : ""}<button class="ghost" id="lo">로그아웃</button></div>`, "직원 모드"));
     root.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { staffTab = b.dataset.t; renderStaff(); });
+    if (q("#ad")) q("#ad").onclick = () => { location.hash = "#admin"; };
     q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin(); };
-    ({ code: paneCode, desk: paneDesk, stat: paneStat, set: paneSet })[staffTab](q("#pane"));
+    ({ code: paneCode, desk: paneDesk, stat: paneStat })[staffTab](q("#pane"));
   }
 
   function paneCode(p) {
@@ -511,21 +585,152 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     }));
   }
 
-  async function paneSet(p) {
-    p.innerHTML = `<div class="center muted">불러오는 중…</div>`;
-    let w; try { w = await api.s.getWindow(); } catch { p.innerHTML = `<div class="err">불러오지 못했어요.</div>`; return; }
-    const st = winState(w), open = w.start <= Date.parse("2001-01-01") && w.end >= Date.parse("2099-01-01");
-    p.innerHTML = `<div class="card"><h2>스탬프 허용 기간</h2>
-      ${w.missing ? `<div class="banner bad">아직 기간이 설정되지 않았어요. 아래에서 설정해야 스탬프가 찍혀요.</div>` : ""}
-      <p>${open ? "<b>제한 없음 (리허설 모드)</b>" : `<b>${kst(w.start)} ~ ${kst(w.end - 60000)}</b>`}</p>
-      <p class="mini">지금은 ${st === "open" ? "스탬프를 찍을 수 있어요." : st === "before" ? "아직 시작 전이라 스탬프가 찍히지 않아요." : "기간이 끝나 스탬프가 찍히지 않아요."}</p>
-      <div style="display:grid;gap:8px;margin-top:10px"><button id="a">포럼 기간으로 설정 (${esc(CONFIG.forum.label)})</button><button class="sec" id="b">리허설 모드: 기간 제한 해제</button></div>
-      <p class="mini" style="margin-top:10px">리허설이 끝나면 반드시 ‘포럼 기간으로 설정’을 눌러 주세요.</p></div>`;
-    q("#a", p).onclick = async () => { await api.s.setWindow(FORUM_WIN()); paneSet(p); };
-    q("#b", p).onclick = async () => { await api.s.setWindow(OPEN_WIN()); paneSet(p); };
+  /* ---------------- 관리자 ---------------- */
+  const isTest = c => /^테스트/.test(c.name || "");
+  const hourKey = ms => { const d = new Date(ms + 9 * 3600e3); return `${d.getUTCMonth() + 1}/${d.getUTCDate()} ${String(d.getUTCHours()).padStart(2, "0")}시`; };
+  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const LOADING = `<div class="center muted">불러오는 중…</div>`;
+
+  function askConfirm({ title, body, ok = "확인", danger = false }) {
+    return new Promise(res => {
+      overlayHost.querySelectorAll(".overlay").forEach(o => o.remove());
+      const o = document.createElement("div"); o.className = "overlay";
+      o.innerHTML = `<div class="sheet"><h2>${esc(title)}</h2><p class="muted">${body}</p>
+        <div class="row"><button class="sec" id="no">취소</button><button id="yes" class="${danger ? "danger" : ""}">${esc(ok)}</button></div></div>`;
+      overlayHost.appendChild(o);
+      const done = v => { o.remove(); res(v); };
+      q("#no", o).onclick = () => done(false); q("#yes", o).onclick = () => done(true);
+      o.onclick = e => { if (e.target === o) done(false); };
+    });
   }
 
-  return { start(route) { cleanup(); route === "staff" ? staffView() : participantView(); }, cleanup };
+  function renderAdmin() {
+    cleanup();
+    const tabs = [["dash", "현황"], ["list", "참가자"], ["code", "코드"], ["win", "기간"], ["reset", "초기화"]];
+    render(shell(`<div class="tabs">${tabs.map(([k, l]) => `<button data-t="${k}" class="${adminTab === k ? "on" : ""}">${l}</button>`).join("")}</div>
+      <div id="pane"></div><div style="text-align:center;margin-top:16px">${adminLink ? `<button class="ghost" id="gs">직원 화면</button>` : ""}<button class="ghost" id="lo">로그아웃</button></div>`, "관리자 모드"));
+    root.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { adminTab = b.dataset.t; renderAdmin(); });
+    if (q("#gs")) q("#gs").onclick = () => { location.hash = "#staff"; };
+    q("#lo").onclick = async () => { await api.s.logout(); renderStaffLogin("", "admin"); };
+    ({ dash: paneDash, list: paneList, code: paneCode, win: paneWin, reset: paneReset })[adminTab](q("#pane"));
+  }
+
+  function detail(all, withTest) {
+    const cards = all.cards.filter(c => withTest || !isTest(c)); const ok = new Set(cards.map(c => c.code));
+    const stamps = all.stamps.filter(s => ok.has(s.code) && BOOTH_IDS.includes(s.booth));
+    const per = {}; BOOTH_IDS.forEach(b => per[b] = 0); const by = {};
+    stamps.forEach(s => { per[s.booth]++; (by[s.code] ||= new Set()).add(s.booth); });
+    const n = c => by[c.code]?.size || 0, has = (c, b) => !!by[c.code]?.has(b);
+    return { cards, stamps, per, n, has, done: cards.filter(c => n(c) >= BOOTH_IDS.length), claimed: cards.filter(c => c.claimed).length };
+  }
+
+  function paneDash(p) {
+    p.innerHTML = LOADING; let all = null;
+    const draw = () => {
+      if (!all) return;
+      const d = detail(all, showTest), total = d.cards.length, nd = d.done.length;
+      const byCode = {}; all.cards.forEach(c => byCode[c.code] = c);
+      const orgs = {}; d.cards.forEach(c => { const k = (c.org || "").trim() || "(미입력)"; const o = orgs[k] ||= { n: 0, done: 0 }; o.n++; if (d.n(c) >= BOOTH_IDS.length) o.done++; });
+      const orgRows = Object.entries(orgs).sort((a, b) => b[1].n - a[1].n).slice(0, 10);
+      const hrs = {}; d.stamps.forEach(s => { if (!s.at) return; const k = hourKey(s.at); const o = hrs[k] ||= { n: 0, t: s.at }; o.n++; o.t = Math.min(o.t, s.at); });
+      const hrRows = Object.entries(hrs).sort((a, b) => a[1].t - b[1].t).slice(-12), hMax = Math.max(1, ...hrRows.map(r => r[1].n));
+      const recent = d.stamps.filter(s => s.at).sort((a, b) => b.at - a.at).slice(0, 10);
+      p.innerHTML = `<label class="chk"><input type="checkbox" id="tt" ${showTest ? "checked" : ""}> 테스트 카드(이름이 ‘테스트’로 시작) 포함해서 보기</label>
+        <div class="stat"><div><b>${total}</b><span>참가 카드</span></div><div><b>${nd}</b><span>5종 완료</span></div>
+          <div><b>${pct(nd, total)}%</b><span>완주율</span></div><div><b>${d.stamps.length}</b><span>찍힌 스탬프 합계</span></div>
+          <div><b>${d.claimed}</b><span>기념품 지급</span></div><div><b>${nd - d.claimed}</b><span>지급 대기</span></div></div>
+        <div class="card" style="margin-top:12px"><h2>미션별 성공 (참가 카드 대비)</h2>
+          ${CONFIG.booths.map((b, i) => `<div class="brow"><span>${b.emoji} ${i + 1}. ${esc(b.name)}</span><div class="bb"><i style="width:${pct(d.per[b.id], total)}%"></i></div><b>${d.per[b.id]}명 · ${pct(d.per[b.id], total)}%</b></div>`).join("")}</div>
+        <div class="card"><h2>소속별 (상위 10)</h2>${orgRows.length ? `<table><tr><th>소속</th><th style="text-align:right">참가</th><th style="text-align:right">완료</th></tr>${orgRows.map(([k, o]) => `<tr><td>${esc(k)}</td><td style="text-align:right">${o.n}</td><td style="text-align:right">${o.done}</td></tr>`).join("")}</table>` : `<p class="mini">아직 데이터가 없어요.</p>`}</div>
+        <div class="card"><h2>시간대별 스탬프 (최근 12개 시간대)</h2>${hrRows.length ? hrRows.map(([k, o]) => `<div class="brow"><span>${k}</span><div class="bb"><i style="width:${pct(o.n, hMax)}%"></i></div><b>${o.n}</b></div>`).join("") : `<p class="mini">아직 데이터가 없어요.</p>`}</div>
+        <div class="card"><h2>최근 스탬프 10건</h2>${recent.length ? `<table>${recent.map(s => { const c = byCode[s.code] || {}; const b = boothOf(s.booth); return `<tr><td>${kstTime(s.at)}</td><td>${esc(c.name || "-")}</td><td>${b.emoji} ${esc(b.name)}</td></tr>`; }).join("")}</table>` : `<p class="mini">아직 데이터가 없어요.</p>`}</div>`;
+      q("#tt", p).onchange = e => { showTest = e.target.checked; draw(); };
+    };
+    unsubs.push(api.s.subscribeAll(a => { all = a; draw(); }));
+  }
+
+  function paneList(p) {
+    p.innerHTML = `<div class="card"><input id="lq" type="text" placeholder="이름 · 소속 · 복구코드 검색" autocomplete="off" value="${esc(listQ)}">
+      <div class="fl">${[["all", "전체"], ["prog", "진행 중"], ["done", "완주·미수령"], ["claimed", "수령 완료"]].map(([k, l]) => `<button data-f="${k}" class="${listF === k ? "on" : ""}">${l}</button>`).join("")}</div>
+      <label class="chk"><input type="checkbox" id="tt" ${showTest ? "checked" : ""}> 테스트 카드 포함</label><div id="lres" class="muted">불러오는 중…</div></div>`;
+    let all = null;
+    const draw = () => {
+      if (!all) return; const d = detail(all, showTest), key = normCode(listQ), t = listQ.trim().toLowerCase();
+      let rows = d.cards.filter(c => {
+        const nn = d.n(c), full = nn >= BOOTH_IDS.length;
+        if (listF === "prog" && full) return false; if (listF === "done" && !(full && !c.claimed)) return false; if (listF === "claimed" && !c.claimed) return false;
+        if (!t) return true; return (c.name || "").toLowerCase().includes(t) || (c.org || "").toLowerCase().includes(t) || (key.length >= 4 && c.code.includes(key));
+      }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      const total = rows.length; rows = rows.slice(0, 100);
+      q("#lres", p).innerHTML = `<p class="mini">${total}명${total > 100 ? " (최근 100명만 표시)" : ""}</p>` + (rows.map(c => {
+        const nn = d.n(c), full = nn >= BOOTH_IDS.length;
+        return `<div class="card" style="margin:0 0 8px"><b>${esc(c.name)}</b> <span class="mini">${c.org ? esc(c.org) + " · " : ""}코드 ${fmtCode(c.code)}${isTest(c) ? " · 테스트" : ""}</span>
+          <div style="margin:6px 0">${CONFIG.booths.map(b => `<span title="${esc(b.name)}" style="font-size:22px;${d.has(c, b.id) ? "" : "filter:grayscale(1);opacity:.35"}">${b.emoji}</span>`).join(" ")} <span class="mini">${nn}/${BOOTH_IDS.length}</span></div>
+          ${c.claimed ? `<div class="badge" style="color:#475569">수령 완료</div>` : full ? `<button data-u="${c.code}">${esc(CONFIG.prize)} 지급 완료 처리</button>` : ""}</div>`;
+      }).join("") || `<p class="mini">조건에 맞는 참가자가 없어요.</p>`);
+      q("#lres", p).querySelectorAll("[data-u]").forEach(b => b.onclick = async () => { b.disabled = true; try { await api.s.markClaimed(b.dataset.u); } catch { b.disabled = false; b.insertAdjacentHTML("afterend", `<div class="err">처리에 실패했어요.</div>`); } });
+    };
+    q("#lq", p).oninput = e => { listQ = e.target.value; draw(); };
+    q("#tt", p).onchange = e => { showTest = e.target.checked; draw(); };
+    p.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { listF = b.dataset.f; p.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b)); draw(); });
+    unsubs.push(api.s.subscribeAll(a => { all = a; draw(); }));
+  }
+
+  async function paneWin(p) {
+    p.innerHTML = LOADING;
+    let w; try { w = await api.s.getWindow(); } catch { p.innerHTML = `<div class="err">불러오지 못했어요.</div>`; return; }
+    const f = FORUM_WIN(), mode = w.missing ? "none" : w.rehearsal ? "rehearsal" : (w.start === f.start && w.end === f.end ? "forum" : "custom"), st = winState(w);
+    const cur = mode === "rehearsal" ? "리허설 모드 — 기간 제한 없음" : mode === "none" ? "아직 설정되지 않음" : `${kst(w.start)} ~ ${kst(w.end - 60000)}`;
+    p.innerHTML = `<div class="card"><h2>스탬프 허용 기간</h2>
+      ${mode === "none" ? `<div class="banner bad">아직 기간이 설정되지 않았어요. 아래에서 선택해야 스탬프가 찍혀요.</div>` : mode === "custom" ? `<div class="banner">현재 기간이 포럼 기간과 달라요. 아래에서 다시 선택해 주세요.</div>` : ""}
+      <div class="opts">
+        <button class="opt ${mode === "forum" ? "on" : ""}" id="a">${mode === "forum" ? `<span class="tag">✓ 선택됨</span>` : ""}<b>🎪 포럼 기간</b><small>${esc(CONFIG.forum.label)} · 기간 밖에는 스탬프가 찍히지 않아요</small></button>
+        <button class="opt ${mode === "rehearsal" ? "on" : ""}" id="b">${mode === "rehearsal" ? `<span class="tag">✓ 선택됨</span>` : ""}<b>🧪 리허설 모드</b><small>기간 제한 없음 · 이 모드에서만 데이터 초기화가 가능해요</small></button>
+      </div>
+      <p>현재 설정: <b>${cur}</b></p>
+      <p class="mini">${mode === "rehearsal" || st === "open" ? "지금은 스탬프를 찍을 수 있어요." : st === "before" ? "아직 시작 전이라 스탬프가 찍히지 않아요." : "기간이 끝나 스탬프가 찍히지 않아요."}</p>
+      <p class="mini">리허설이 끝나면 반드시 ‘포럼 기간’을 선택해 주세요.</p><div class="err" id="we"></div></div>`;
+    const apply = async (win, label) => { try { await api.s.setWindow(win); paneWin(p); } catch (e) { q("#we", p).textContent = "저장하지 못했어요. 관리자 계정과 규칙 게시 상태를 확인해 주세요."; } };
+    q("#a", p).onclick = () => { if (mode !== "forum") apply(FORUM_WIN()); };
+    q("#b", p).onclick = async () => {
+      if (mode === "rehearsal") return;
+      if (await askConfirm({ title: "리허설 모드로 바꿀까요?", body: "기간 제한이 풀리고 <b>데이터 초기화</b>도 가능해져요. 행사 시작 전에는 반드시 ‘포럼 기간’으로 되돌려 주세요.", ok: "리허설 모드로 변경" })) apply(OPEN_WIN());
+    };
+  }
+
+  async function paneReset(p) {
+    p.innerHTML = LOADING;
+    let w; try { w = await api.s.getWindow(); } catch { p.innerHTML = `<div class="err">불러오지 못했어요.</div>`; return; }
+    if (!w.rehearsal) {
+      p.innerHTML = `<div class="card"><h2>데이터 초기화</h2><div class="banner">초기화는 <b>리허설 모드</b>일 때만 할 수 있어요. 행사 중에 실수로 스탬프가 지워지지 않게 막아 둔 안전장치예요.</div>
+        <button id="gw">기간 설정에서 리허설 모드로 바꾸기</button></div>`;
+      q("#gw", p).onclick = () => { adminTab = "win"; renderAdmin(); }; return;
+    }
+    p.innerHTML = `<div class="card"><h2>데이터 초기화</h2><div class="banner bad">되돌릴 수 없어요. 아래 데이터가 모두 삭제돼요.</div>
+      <table><tr><td>삭제</td><td>참가 카드 <b id="nc">…</b>개 · 스탬프 <b id="ns">…</b>개 · 직원 발급 코드</td></tr><tr><td>유지</td><td>직원·관리자 등록, 기간 설정</td></tr></table>
+      <label class="chk" style="margin-top:12px"><input type="checkbox" id="auto" checked> 초기화가 끝나면 ‘포럼 기간’으로 자동 전환</label>
+      <label for="cf">확인을 위해 <b>초기화</b>라고 입력하세요</label>
+      <input id="cf" type="text" autocomplete="off" placeholder="초기화">
+      <div class="err" id="re"></div><button class="danger" id="run" disabled style="margin-top:8px">초기화 실행</button></div>`;
+    unsubs.push(api.s.subscribeAll(a => { if (q("#nc", p)) { q("#nc", p).textContent = a.cards.length; q("#ns", p).textContent = a.stamps.length; } }));
+    q("#cf", p).oninput = e => { q("#run", p).disabled = e.target.value.trim() !== "초기화"; };
+    q("#run", p).onclick = async () => {
+      if (!(await askConfirm({ title: "정말 초기화할까요?", body: "모든 참가 카드와 스탬프가 <b>영구 삭제</b>돼요.", ok: "초기화", danger: true }))) return;
+      const btn = q("#run", p); btn.disabled = true; q("#cf", p).disabled = true; q("#re", p).textContent = ""; btn.textContent = "삭제 중…";
+      try {
+        const r = await api.s.resetAll((a, b) => { btn.textContent = `삭제 중… ${a}/${b}`; });
+        let sw = false; if (q("#auto", p).checked) { await api.s.setWindow(FORUM_WIN()); sw = true; }
+        p.innerHTML = `<div class="card"><h2>초기화 완료</h2><div class="banner">카드 ${r.cards}개, 스탬프 ${r.stamps}개를 삭제했어요.${sw ? " 기간은 ‘포럼 기간’으로 전환했어요." : " 기간은 아직 ‘리허설 모드’예요. 행사 시작 전에 ‘포럼 기간’으로 바꿔 주세요."}</div>
+          <p class="mini">리허설에 쓴 폰은 저장된 카드를 찾지 못했다고 나올 수 있어요. 그대로 새 카드를 만들면 됩니다.</p><button id="gw">기간 설정 확인하기</button></div>`;
+        q("#gw", p).onclick = () => { adminTab = "win"; renderAdmin(); };
+      } catch (e) {
+        btn.textContent = "초기화 실행"; q("#cf", p).disabled = false; btn.disabled = q("#cf", p).value.trim() !== "초기화";
+        q("#re", p).textContent = e.message === "not-rehearsal" ? "리허설 모드가 아니라서 초기화할 수 없어요." : "초기화하지 못했어요. 관리자 계정과 규칙 게시 상태를 확인해 주세요. [" + (e.code || e.message) + "]";
+      }
+    };
+  }
+
+  return { start(route) { cleanup(); root.classList.toggle("wide", route === "admin"); route === "admin" ? adminView() : route === "staff" ? staffView() : participantView(); }, cleanup };
 }
 
 /* ---------- 시작 (실서비스/데모 공통) ---------- */
@@ -536,7 +741,7 @@ document.body.classList.add("single");
   try { api = CONFIG.firebase ? await makeFirebaseApi(CONFIG.firebase) : makeDemoApi(makeLocalBackend()); }
   catch (e) { root.innerHTML = `<div style="padding:40px 20px;text-align:center">연결하지 못했어요.<br><small>${esc(e.message || e)}</small></div>`; return; }
   const app = createApp(root, { api, persist: makePersist() });
-  const go = () => app.start(location.hash.startsWith("#staff") ? "staff" : "p");
+  const go = () => app.start(location.hash.startsWith("#admin") ? "admin" : location.hash.startsWith("#staff") ? "staff" : "p");
   addEventListener("hashchange", go); go();
 })();
 </script>
