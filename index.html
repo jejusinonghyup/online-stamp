@@ -128,14 +128,14 @@ code{background:#eef2f7;border-radius:5px;padding:1px 5px;font-size:12.5px}
    shopUrl  : 미션5(온라인쇼핑몰 알림설정)에서 열어 줄 스토어 주소
    ============================================================ */
 const CONFIG = {
-   firebase : Firebase 콘솔의 웹 앱 설정 객체. null 이면 데모 모드(이 브라우저에서만 동작)
-   forum    : 스탬프를 찍을 수 있는 기간(한국시간). end 는 '이 시각 직전까지'
-   shopUrl  : 미션5(온라인쇼핑몰 알림설정)에서 열어 줄 스토어 주소
-   ============================================================ */
-const CONFIG = {
   firebase: {
     apiKey: "AIzaSyBOyT7uSlnRkYN7YtYzkpTAbmfoXCddqtQ",
     authDomain: "online-stamp.firebaseapp.com",
+    projectId: "online-stamp",
+    storageBucket: "online-stamp.firebasestorage.app",
+    messagingSenderId: "619203181599",
+    appId: "1:619203181599:web:c9017089e32dc25ee9692a"
+  },
   /* 예) firebase: { apiKey:"…", authDomain:"…", projectId:"…", appId:"…" }, */
   eventTitle: "2026 AX농업포럼 X 제주시농협",
   forum: { start: "2026-11-19T00:00:00+09:00", end: "2026-11-21T00:00:00+09:00", label: "11/19(목) ~ 11/20(금)" },
