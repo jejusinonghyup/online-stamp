@@ -407,7 +407,6 @@ function makePersist() {
   const lsSet = v => { try { v == null ? localStorage.removeItem(KEY) : localStorage.setItem(KEY, v); } catch {} };
   const ckGet = () => { try { const m = document.cookie.match(new RegExp("(?:^|; )" + KEY + "=([^;]+)")); return m ? m[1] : null; } catch { return null; } };
   const ckSet = v => { try { document.cookie = v == null ? `${KEY}=; max-age=0; path=/` : `${KEY}=${v}; max-age=31536000; path=/; SameSite=Lax`; } catch {} };
-  const goRoute = r => { const f = r === "admin" ? "admin.html" : "staff.html"; if (typeof window !== "undefined" && window.__ROUTE) { location.href = f; } else { location.hash = "#" + r; } };
   const fromUrl = () => { const m = location.hash.match(/[#&]c=([A-Za-z0-9-]+)/); return m ? normCode(m[1]) : null; };
   return {
     async get() {
@@ -426,6 +425,7 @@ function makeMemoryPersist() { let v = null; return { async get() { return v; },
 /* ============================================================
    화면 (한 화면 = createApp 한 번. 샘플 페이지에서는 두 번 띄운다)
    ============================================================ */
+const goRoute = r => { const f = r === "admin" ? "admin.html" : "staff.html"; if (typeof window !== "undefined" && window.__ROUTE) { location.href = f; } else { location.hash = "#" + r; } };
 function createApp(root, { api, persist, notice = "", overlayHost = root.parentNode || root, adminLink = true }) {
   const unsubs = []; let codeTimer = null, staffTab = "code", staffBooth = "b1", adminTab = "dash", myRole = "", myName = "", showTest = false, listQ = "", listF = "all", lastN = null;
   const q = (s, r = root) => r.querySelector(s);
