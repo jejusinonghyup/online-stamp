@@ -9,6 +9,11 @@
 <meta property="og:description" content="직원 전용 · 참가자에게 공유하지 마세요">
 <meta name="robots" content="noindex,nofollow">
 <script>window.__ROUTE="staff";</script>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js">
+<link rel="preconnect" href="https://firestore.googleapis.com">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <style>
 :root{--blue:#0b5fa5;--blue-d:#084a82;--green:#6fae1f;--ink:#1c2733;--mute:#64748b;--line:#e2e8f0;--bg:#f4f7fb;--ok:#15803d;--bad:#b91c1c;--card:#fff}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -127,14 +132,14 @@ code{background:#eef2f7;border-radius:5px;padding:1px 5px;font-size:12.5px}
    shopUrl  : 미션5(온라인쇼핑몰 알림설정)에서 열어 줄 스토어 주소
    ============================================================ */
 const CONFIG = {
+   firebase : Firebase 콘솔의 웹 앱 설정 객체. null 이면 데모 모드(이 브라우저에서만 동작)
+   forum    : 스탬프를 찍을 수 있는 기간(한국시간). end 는 '이 시각 직전까지'
+   shopUrl  : 미션5(온라인쇼핑몰 알림설정)에서 열어 줄 스토어 주소
+   ============================================================ */
+const CONFIG = {
   firebase: {
     apiKey: "AIzaSyBOyT7uSlnRkYN7YtYzkpTAbmfoXCddqtQ",
     authDomain: "online-stamp.firebaseapp.com",
-    projectId: "online-stamp",
-    storageBucket: "online-stamp.firebasestorage.app",
-    messagingSenderId: "619203181599",
-    appId: "1:619203181599:web:c9017089e32dc25ee9692a"
-  },
   /* 예) firebase: { apiKey:"…", authDomain:"…", projectId:"…", appId:"…" }, */
   eventTitle: "2026 AX농업포럼 X 제주시농협",
   forum: { start: "2026-11-19T00:00:00+09:00", end: "2026-11-21T00:00:00+09:00", label: "11/19(목) ~ 11/20(금)" },
@@ -229,7 +234,7 @@ function makeDemoApi(backend) {
       async getWindow() { const w = load().win; return { ...w, rehearsal: isOpenWin(w), missing: false }; },
       async setWindow(w) { const d = load(); d.win = { start: w.start, end: w.end }; save(d); },
       async issueCode(booth) {
-        const d = load(); const code = String(rnd(100000, 999999));
+        const d = load(); const code = String(rnd(1000, 9999));
         d.k[booth] = { code, expiresAt: Date.now() + CONFIG.codeTtlSec * 1000 }; save(d);
         return { code, expiresAtMs: d.k[booth].expiresAt };
       },
@@ -278,7 +283,8 @@ function makeDemoApi(backend) {
 async function makeFirebaseApi(cfg) {
   const base = `https://www.gstatic.com/firebasejs/${FB_VER}/`;
   const [{ initializeApp }, A, F] = await Promise.all([import(base + "firebase-app.js"), import(base + "firebase-auth.js"), import(base + "firebase-firestore.js")]);
-  const fbApp = initializeApp(cfg); const auth = A.getAuth(fbApp); const db = F.getFirestore(fbApp);
+  const fbApp = initializeApp(cfg); const auth = A.getAuth(fbApp); let db; try { db = F.initializeFirestore(fbApp, { experimentalAutoDetectLongPolling: true }); } catch { db = F.getFirestore(fbApp); }
+  const mine = {}, pokes = new Set();
   let user = await new Promise(res => { const un = A.onAuthStateChanged(auth, u => { un(); res(u); }); });
   let offset = 0;
   const ensure = async () => { if (!user) user = (await A.signInAnonymously(auth)).user; return user; };
@@ -313,15 +319,16 @@ async function makeFirebaseApi(cfg) {
       async load(code) { await ensure(); const s = await F.getDoc(F.doc(db, "cards", code)); return s.exists() ? cardData(code, s.data()) : null; },
       async getWindow() { await ensure(); return readWindow(); },
       subscribe(code, cb) {
-        let card = null, st = {}; const emit = () => { if (card) cb({ card, stamps: st }); };
+        let card = null, st = {}; const emit = () => { if (card) cb({ card, stamps: { ...st, ...(mine[code] || {}) } }); }; pokes.add(emit);
         const u1 = F.onSnapshot(F.doc(db, "cards", code), s => { card = s.exists() ? cardData(code, s.data()) : null; emit(); });
         const u2 = F.onSnapshot(F.collection(db, "cards", code, "stamps"), s => { if (s.metadata.hasPendingWrites) return; st = stampMap(s); emit(); });
-        return () => { u1(); u2(); };
+        return () => { pokes.delete(emit); u1(); u2(); };
       },
       async stamp(code, booth, input) {
         await ensure();
         try { await F.setDoc(F.doc(db, "cards", code, "stamps", booth), { code: input, at: F.serverTimestamp() }); }
         catch (e) { throw new Error(e.code === "permission-denied" ? "invalid" : "net"); }
+        (mine[code] ||= {})[booth] = Date.now(); pokes.forEach(f => f());
       },
     },
     s: {
@@ -352,7 +359,7 @@ async function makeFirebaseApi(cfg) {
       getWindow: readWindow,
       async setWindow(w) { await F.setDoc(F.doc(db, "settings", "event"), { start: F.Timestamp.fromMillis(w.start), end: F.Timestamp.fromMillis(w.end), rehearsal: isOpenWin(w) }); },
       async issueCode(booth) {
-        const code = String(rnd(100000, 999999));
+        const code = String(rnd(1000, 9999));
         await F.setDoc(F.doc(db, "codes", booth), { code, expiresAt: F.Timestamp.fromMillis(Date.now() + offset + CONFIG.codeTtlSec * 1000) });
         return { code, expiresAtMs: Date.now() + CONFIG.codeTtlSec * 1000 };
       },
@@ -536,8 +543,8 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     overlayHost.querySelectorAll(".overlay").forEach(o => o.remove());
     const o = document.createElement("div"); o.className = "overlay";
     o.innerHTML = `<div class="sheet"><h2>${b.emoji} ${esc(b.name)}</h2>
-      <p class="muted">성공을 확인한 직원이 화면에 띄운 6자리 코드를 입력하세요. 코드는 ${CONFIG.codeTtlSec}초만 유효해요.</p>
-      <input class="code-in" id="cd" type="tel" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code">
+      <p class="muted">성공을 확인한 직원이 화면에 띄운 4자리 코드를 입력하세요. 코드는 ${CONFIG.codeTtlSec}초만 유효해요.</p>
+      <input class="code-in" id="cd" type="tel" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="one-time-code">
       <div class="err" id="ce"></div>
       <div class="row"><button class="sec" id="cc">닫기</button><button id="ok">스탬프 찍기</button></div></div>`;
     overlayHost.appendChild(o);
@@ -545,11 +552,12 @@ function createApp(root, { api, persist, notice = "", overlayHost = root.parentN
     o.onclick = e => { if (e.target === o) o.remove(); }; q("#cc", o).onclick = () => o.remove();
     const msg = { dup: "이미 찍힌 스탬프예요.", net: "네트워크 오류예요. 다시 시도해 주세요.", closed: `포럼 기간(${CONFIG.forum.label})에만 스탬프를 찍을 수 있어요.`, nocard: "카드를 찾지 못했어요. 복구 코드로 다시 불러와 주세요." };
     const submit = async () => {
-      const input = inp.value.replace(/\D/g, ""); if (input.length !== 6) { q("#ce", o).textContent = "6자리 숫자를 입력해 주세요."; return; }
+      const input = inp.value.replace(/\D/g, ""); if (input.length !== 4) { q("#ce", o).textContent = "4자리 숫자를 입력해 주세요."; return; }
       if (winState(win) !== "open") { q("#ce", o).textContent = msg.closed; return; }
-      q("#ok", o).disabled = true;
+      q("#ok", o).disabled = true; q("#ok", o).textContent = "확인 중…"; q("#ce", o).textContent = "";
       try { await api.p.stamp(code, b.id, input); o.remove(); }
       catch (e) { q("#ce", o).textContent = msg[e.message] || "코드가 맞지 않거나 만료됐어요. 직원에게 다시 요청해 주세요."; q("#ok", o).disabled = false; inp.select(); }
+      finally { const k = q("#ok", o); if (k) k.textContent = "스탬프 찍기"; }
     };
     q("#ok", o).onclick = submit; inp.onkeydown = e => { if (e.key === "Enter") submit(); };
   }
